@@ -1,0 +1,7 @@
+library(data.table)
+library(ggplot2)
+library(stringi)
+library(quanteda)
+library(quanteda.dictionaries)
+library(shiny)
+library(shinydashboard)
