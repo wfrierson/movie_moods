@@ -22,3 +22,39 @@ unzip(path.screenplays, exdir = folder.data)
 # Remove zip file and unnecessary "__MACOSX" folder
 file.remove(path.screenplays)
 unlink(file.path(folder.data, '__MACOSX'), recursive = TRUE)
+
+
+
+# Download Emotion Lexicon dataset from NRC website
+url.nrc.sentiment <- 'http://sentiment.nrc.ca/lexicons-for-research/'
+name.emolex <- 'NRC-Emotion-Lexicon.zip'
+file.emolex <- 'NRC-Emotion-Lexicon-v0.92/NRC-Emotion-Lexicon-Wordlevel-v0.92.txt'
+
+destfile.emolex <- file.path(folder.data, name.emolex)
+
+# Download the dataset ZIP file if we haven't done so already
+if (!file.exists(destfile.emolex)) {
+  url.emolex <- paste0(url.nrc.sentiment, name.emolex)
+  download.file(url.emolex, destfile.emolex)
+}
+
+# Extract the word-level emotion lexicon with word associations
+unzip(destfile.emolex,
+      files = c(file.emolex),
+      exdir = folder.data)
+
+emolex <- data.table::fread(file.path(folder.data, file.emolex),
+                            sep = '\t',
+                            header = FALSE,
+                            skip = 1,
+                            colClasses = c(
+                              'character',
+                              'factor',
+                              'logical'
+                            ),
+                            col.names = c(
+                              'Term',
+                              'AffectCategory',
+                              'AssociationFlag'
+                            ),
+                            logical01 = TRUE)
