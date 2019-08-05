@@ -23,8 +23,6 @@ unzip(path.screenplays, exdir = folder.data)
 file.remove(path.screenplays)
 unlink(file.path(folder.data, '__MACOSX'), recursive = TRUE)
 
-
-
 # Download Emotion Lexicon dataset from NRC website
 url.nrc.sentiment <- 'http://sentiment.nrc.ca/lexicons-for-research/'
 name.emolex <- 'NRC-Emotion-Lexicon.zip'
@@ -65,3 +63,26 @@ dictionary.NRC <- emolex[AssociationFlag == TRUE, Term, AffectCategory] %>%
   split(f = .$`AffectCategory`) %>%
   map('Term') %>%
   dictionary()
+
+# Download IMDb dataset tables
+# We don't need to extract them in advance since we can read directly from a gzfile
+
+folder.data.imdb <- file.path(folder.data, 'imdb')
+
+url.imdb <- 'https://datasets.imdbws.com/'
+
+name.imdb.basics <- 'title.basics.tsv.gz'
+name.imdb.akas <- 'title.akas.tsv.gz'
+name.imdb.ratings <- 'title.ratings.tsv.gz'
+
+imdb.names <- c(name.imdb.basics, name.imdb.akas, name.imdb.ratings)
+
+# Download the IMDB files if we don't already have them
+sapply(imdb.names, function(name) {
+  destfile <- file.path(folder.data.imdb, name)
+
+  if (!file.exists(destfile)) {
+    url <- paste0(url.imdb, name)
+    download.file(url, destfile)
+  }
+})
