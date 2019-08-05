@@ -41,6 +41,7 @@ if (!file.exists(destfile.emolex)) {
 # Extract the word-level emotion lexicon with word associations
 unzip(destfile.emolex,
       files = c(file.emolex),
+      overwrite = FALSE,
       exdir = folder.data)
 
 emolex <- data.table::fread(file.path(folder.data, file.emolex),
@@ -58,3 +59,9 @@ emolex <- data.table::fread(file.path(folder.data, file.emolex),
                               'AssociationFlag'
                             ),
                             logical01 = TRUE)
+
+# Build a data dictionary suitable for use with quanteda
+dictionary.NRC <- emolex[AssociationFlag == TRUE, Term, AffectCategory] %>%
+  split(f = .$`AffectCategory`) %>%
+  map('Term') %>%
+  dictionary()
