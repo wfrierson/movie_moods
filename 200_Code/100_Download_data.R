@@ -23,7 +23,46 @@ unzip(path.screenplays, exdir = folder.data)
 file.remove(path.screenplays)
 unlink(file.path(folder.data, '__MACOSX'), recursive = TRUE)
 
+# Download Emotion Lexicon dataset from NRC website
+url.nrc.sentiment <- 'http://sentiment.nrc.ca/lexicons-for-research/'
+name.emolex <- 'NRC-Emotion-Lexicon.zip'
+file.emolex <- 'NRC-Emotion-Lexicon-v0.92/NRC-Emotion-Lexicon-Wordlevel-v0.92.txt'
 
+destfile.emolex <- file.path(folder.data, name.emolex)
+
+# Download the dataset ZIP file if we haven't done so already
+if (!file.exists(destfile.emolex)) {
+  url.emolex <- paste0(url.nrc.sentiment, name.emolex)
+  download.file(url.emolex, destfile.emolex)
+}
+
+# Extract the word-level emotion lexicon with word associations
+unzip(destfile.emolex,
+      files = c(file.emolex),
+      overwrite = FALSE,
+      exdir = folder.data)
+
+emolex <- data.table::fread(file.path(folder.data, file.emolex),
+                            sep = '\t',
+                            header = FALSE,
+                            skip = 1,
+                            colClasses = c(
+                              'character',
+                              'factor',
+                              'logical'
+                            ),
+                            col.names = c(
+                              'Term',
+                              'AffectCategory',
+                              'AssociationFlag'
+                            ),
+                            logical01 = TRUE)
+
+# Build a data dictionary suitable for use with quanteda
+dictionary.NRC <- emolex[AssociationFlag == TRUE, Term, AffectCategory] %>%
+  split(f = .$`AffectCategory`) %>%
+  map('Term') %>%
+  dictionary()
 
 # Download IMDb dataset tables
 # We don't need to extract them in advance since we can read directly from a gzfile
