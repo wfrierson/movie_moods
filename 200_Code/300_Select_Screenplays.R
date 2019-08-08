@@ -272,9 +272,8 @@ data.table::fwrite(
   , row.names = FALSE
 )
 
-data.table::fwrite(
+# Exporting as compressed file to avoid github's 100 MB per file limit.
+saveRDS(
   screenplayStatsSelection
-  , file.path(folder.data, 'screenplayStatsSelection.csv')
-  , quote = FALSE
-  , row.names = FALSE
+  , file.path(folder.data, 'screenplayStatsSelection.rds')
 )
