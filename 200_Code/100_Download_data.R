@@ -78,6 +78,10 @@ name.imdb.ratings <- 'title.ratings.tsv.gz'
 imdb.names <- c(name.imdb.basics, name.imdb.akas, name.imdb.ratings)
 
 # Download the IMDB files if we don't already have them
+if (!dir.exists(folder.data.imdb)) {
+  dir.create(folder.data.imdb)
+}
+
 sapply(imdb.names, function(name) {
   destfile <- file.path(folder.data.imdb, name)
 
