@@ -54,6 +54,9 @@ CreateRegexFilter <- function(
 #' # See 300_Select_Screenplays for example application
 #' GetMovieTranscriptStats(screenplays[[1]])
 GetMovieTranscriptStats <- function(rawTranscript) {
+  # Make copy to preserve original data for comparison/diagnostics
+  rawTranscript <- copy(rawTranscript)
+  
   # Create filter to count specific types of tokens
   filterTokenCount <- "\\b[a-zA-Z0-9]{2,}\\b"
   
@@ -129,7 +132,6 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   filterPageNumbersDigit <- '([:digit:])+'
   filterPageNumbersPunct <- '([\\.-])?'
   filterPageNumbersLeftTail <- '(?=[ ]{2,}[:alnum:])'
-  filterPageNumbersRightTail <- '([ ]{0,2})?'
   
   filterPageNumbersLeft <- paste0(
     '^',
@@ -142,17 +144,6 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     filterPageNumbersLeftTail
   )
   
-  filterPageNumbersRight <- paste0(
-    filterPageNumbersAlpha,
-    filterPageNumbersPunct,
-    filterPageNumbersDigit,
-    filterPageNumbersPunct,
-    filterPageNumbersAlpha,
-    filterPageNumbersPunct,
-    filterPageNumbersRightTail,
-    '$'
-  )
-  
   # Create regex filter to find leading spaces to track indentation patterns
   filterLeftSpaces <- '^[ ]*(?=[^ ])'
   
@@ -162,6 +153,10 @@ GetMovieTranscriptStats <- function(rawTranscript) {
       string = stri_replace_all_fixed(string, '\t', '    ')
       , lineNumber = 1:.N
     )
+  ][
+    # Changing lineNumber to match the exact line numbers in the text files
+    # for easier comparison.
+    , lineNumber := (lineNumber + (lineNumber - 1)) %>% as.integer
   ][
     # Remove "continued" & "voice over" labels since they often are adjacent
     # to character labels, and remove html bold tags
@@ -176,9 +171,9 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     # Extract these to get their character length to replace later with
     # spaces (to preserve indentation).
     , pageNumberStringLength := stri_extract_first_regex(
-            string,
-            filterPageNumbersLeft
-         ) %>% nchar 
+                                   string,
+                                   filterPageNumbersLeft
+                                ) %>% nchar 
   ][
     !is.na(pageNumberStringLength)
     # Remove apparent page numbers on left hand sides of each line.
@@ -186,13 +181,6 @@ GetMovieTranscriptStats <- function(rawTranscript) {
                   string,
                   filterPageNumbersLeft,
                   stri_pad_left('', pageNumberStringLength)
-        )
-  ][
-    # Remove apparent page numbers on left hand sides of each line.
-    , string := stri_replace_all_regex(
-                  string,
-                  filterPageNumbersRight,
-                  ''
                 )
   ]
   
@@ -278,6 +266,18 @@ GetMovieTranscriptStats <- function(rawTranscript) {
       )
     ]
   }
+  
+  rawTranscript[
+    # Create indicator for lines that look like a character label preceeding
+    # dialogue. Useful to flag screenplays where character label indent is
+    # mixed with other screenplay components.
+    , capitalizedCharacterMentionLineInd := ifelse(
+        tokenCount > 0 &
+          tokenCount == tokenCountCharacterMentionCapitalized,
+        1,
+        0
+    )
+  ]
   
   return(rawTranscript)
 }
