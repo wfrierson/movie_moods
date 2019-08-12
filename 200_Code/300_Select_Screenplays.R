@@ -99,7 +99,6 @@ clusterExport(
   functionsToExport,
   environment()
 )
-start_time <- Sys.time()
 screenplayStats <- rbindlist(parLapply(
   cl,
   screenplays,
@@ -111,7 +110,6 @@ screenplayStats <- rbindlist(parLapply(
     ]
   }
 ))
-end_time <- Sys.time()
 stopCluster(cl)
 
 # Identify movies with regular indentation formatting in order to maximize
