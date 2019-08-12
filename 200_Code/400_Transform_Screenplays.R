@@ -100,9 +100,11 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
       NA_character_
   )))
 ][
+  # Remove unneeded columns
   , `:=` (
     settingInd = NULL
     , descriptionIndentInd = NULL
+    , settingIndentInd = NULL
   )
 ]
 
@@ -113,7 +115,22 @@ setcolorder(
   c('movie', 'sectionNumber', 'sceneNumber', 'component', 'character', 'text')
 )
 
-# Note: The current implementation only has ~1% of screenplay components that are not identified.
+# Remove 9 screenplays with unresolved issues
+screenplaysToDrop <- screenplayTransformed[
+  , .(
+    pctBadComponents = sum(ifelse(is.na(component), 1, 0)) / .N
+  )
+  , keyby = movie
+][
+  pctBadComponents > 0.1
+  , movie
+]
+
+screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
+
+# Note: The current implementation only has ~1% of screenplay components that 
+# are not identified.
+#
 # Code:
 # screenplayTransformed[, .N / nrow(screenplayTransformed), keyby = component]
 #
