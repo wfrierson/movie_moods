@@ -125,10 +125,33 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   )
   
   # Create regex filter to find and remove apparent page numbers
-  filterPageNumbersLeft <- 
-    '^([:digit:])+([\\.-])?([:alpha:]+)?([\\.-])?(?=[ ]{2,}[:alnum:])'
-  filterPageNumbersRight <- 
-    '([:digit:])+([\\.-])?([:alpha:]+)?([\\.-])?([ ]{0,2})?$'
+  filterPageNumbersAlpha <- '([:alpha:]+)?'
+  filterPageNumbersDigit <- '([:digit:])+'
+  filterPageNumbersPunct <- '([\\.-])?'
+  filterPageNumbersLeftTail <- '(?=[ ]{2,}[:alnum:])'
+  filterPageNumbersRightTail <- '([ ]{0,2})?'
+  
+  filterPageNumbersLeft <- paste0(
+    '^',
+    filterPageNumbersAlpha,
+    filterPageNumbersPunct,
+    filterPageNumbersDigit,
+    filterPageNumbersPunct,
+    filterPageNumbersAlpha,
+    filterPageNumbersPunct,
+    filterPageNumbersLeftTail
+  )
+  
+  filterPageNumbersRight <- paste0(
+    filterPageNumbersAlpha,
+    filterPageNumbersPunct,
+    filterPageNumbersDigit,
+    filterPageNumbersPunct,
+    filterPageNumbersAlpha,
+    filterPageNumbersPunct,
+    filterPageNumbersRightTail,
+    '$'
+  )
   
   # Create regex filter to find leading spaces to track indentation patterns
   filterLeftSpaces <- '^[ ]*(?=[^ ])'
