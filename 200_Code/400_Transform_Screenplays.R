@@ -1,5 +1,17 @@
-# Import prior results here:
 folder.data <- '100_Data'
+folder.code <- '200_Code'
+
+path.dependencies <- file.path(folder.code, '000_Dependencies.R')
+source(path.dependencies)
+
+screenplayIndentationStatsSelection <- fread(
+  file.path(folder.data, 'screenplayIndentationStatsSelection.csv')
+  , stringsAsFactors = FALSE
+)
+
+screenplayStatsSelection <- readRDS(
+  file.path(folder.data, 'screenplayStatsSelection.rds')
+)
 
 # Retain indentations inferred as screenplay components
 screenplayTransformed <- screenplayIndentationStatsSelection[
@@ -29,8 +41,6 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
     )
 ][
   order(movie, lineNumber)
-  # NOTE: This can be NULL if descriptionNoSettingIndentInd is on first line
-  # Consider redoing lineNumber to identify first line (after filtering)
   , descriptionSectionInd := ifelse(
                               lineNumber == 1 &
                                 descriptionNoSettingIndentInd == 1, 1, ifelse(
@@ -96,7 +106,7 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
   )
 ]
 
-# To-do
+# Format layout for easier use
 setnames(screenplayTransformed, 'stringTrimmed', 'text')
 setcolorder(
   screenplayTransformed,
@@ -109,11 +119,11 @@ setcolorder(
 #
 # Output:
 #
-#      component          V1
-# 1:        <NA> 0.009326365
-# 2: description 0.321195316
-# 3:    dialogue 0.569917497
-# 4:     setting 0.099560822
+#      component         V1
+# 1:        <NA> 0.01142770
+# 2: description 0.32064152
+# 3:    dialogue 0.56881829
+# 4:     setting 0.09911248
 
 # Exporting as compressed file to avoid github's 100 MB per file limit.
 saveRDS(
