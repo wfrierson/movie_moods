@@ -19,7 +19,7 @@ shinyUI(
                     'Filter 2',
                     min = 1,
                     max = 50,
-                    value = 30
+                    value = c(35, 45)
                 ),
                 sliderInput(
                     'filter3',
@@ -50,6 +50,7 @@ shinyUI(
                         height = 300
                     )
                 ),
+                hr(),
                 fluidRow(
                     box(
                         title = "Characters",
