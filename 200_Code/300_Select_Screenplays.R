@@ -139,9 +139,11 @@ screenplayIndentationStats <- screenplayStats[
         , pctTokensCharacterMentionCapitalized = 
             sum(tokenCountCharacterMentionCapitalized) / sum(tokenCount)
         , pctLinesCharacterMention = 
-            sum(tokenCountCharacterMention) / sum(tokenCount)
+            sum(tokenCountCharacterMention) / .N
         , pctLinesCharacterMentionCapitalized = 
-            sum(tokenCountCharacterMentionCapitalized) / sum(tokenCount)
+            sum(tokenCountCharacterMentionCapitalized) / .N
+        , pctLinesOnlyCapitalizedCharacterMention =
+            sum(capitalizedCharacterMentionLineInd) / .N
         , pctLinesCharacterDirection = sum(characterDirectionInd) / .N
         , pctLinesCapitalized = sum(allCapsInd) / .N
         , pctLinesSetting = sum(settingInd) / .N
@@ -222,15 +224,28 @@ screenplayIndentationStats <- screenplayStats[
       0
   )
 ][
-  # Attempt at identifying indents that are amibiguous, i.e., they look like
-  # important components (and they are) but they are many components.
+  # Indicator to identify indents that look like character labels mixed with
+  # dialogue. Intend to remove these screenplays because they have a very 
+  # different format.
   #
-  # Not too selective yet. Big offenders are:
-  #        myweekwithmarilyn & romeojuliet
+  # E.g.,
+  # RIPLEY
+  #
+  # Stay away from her!
   , mixedCharacterWithDialogueIndentInd := ifelse(
-      pctLinesCharacterMentionCapitalized > 0.02 &
-        pctLinesCharacterMention > 0.02 &
+      pctLinesOnlyCapitalizedCharacterMention > 0.10 &
         dialogueIndentInd == 1 &
+        pctTokens > 0.3,
+      1,
+      0
+  )
+][
+  # Indicator to identify indents that look like descriptions mixed with 
+  # dialogue. Intend to remove these screenplays because they have a very
+  # different format.
+  , mixedDescriptionWithDialogueIndentInd := ifelse(
+      dialogueIndentInd == 1 &
+        pctLinesCharacterMentionCapitalized > 0.1 &
         pctTokens > 0.3,
       1,
       0
@@ -244,6 +259,7 @@ fieldsScreenplayComponents <- c(
   'settingIndentInd',
   'characterDirectionIndentInd',
   'mixedCharacterWithDialogueIndentInd'
+  ,'mixedDescriptionWithDialogueIndentInd'
 )
 fieldsComponentCounts <- gsub(
   'IndentInd',
@@ -282,21 +298,25 @@ screenplayIndentationStats[
 ]
 
 # Create draft of well-structured screenplays where:
-#    * Each screenplay component occurs at least once, and
-#    * at most 5% of all tokens per screenplay are omitted by only keeping the
-#      inferred components
+#    * Each screenplay component occurs at least once,
+#    * At most 5% of all tokens per screenplay are omitted by only keeping the
+#      inferred components, and
+#    * There are no mixing of character labels and dialogue (appearing in 69
+#      screenplays)
+#    * There are no mixing of descriptions and dialogue (appearing in 22
+#      screenplays, when ignoring mixed characters/dialogue)
 fieldsMovieLevel <- c('movie', 'entropy', 'pctRecordsDropped',
                       'pctTokensDropped', fieldsComponentCounts)
 screenplaySelectionDraft <- unique(screenplayIndentationStats[
-  !(movie %in% c('romeojuliet', 'myweekwithmarilyn'))
-][
   , mget(fieldsMovieLevel)
 ])[
   dialogueIndentCount > 0 & 
     characterIndentCount > 0 & 
     descriptionIndentCount > 0 &
     settingIndentCount > 0 &
-    pctTokensDropped < 0.05
+    pctTokensDropped < 0.05 &
+    mixedCharacterWithDialogueIndentCount == 0 &
+    mixedDescriptionWithDialogueIndentCount == 0
 ][
   order(entropy)
 ]
