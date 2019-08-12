@@ -19,7 +19,8 @@ screenplayPaths[, c('genre', 'filename') := tstrsplit(path, '/')]
 screenplayGenres <- dcast(
   screenplayPaths, 
   filename ~ genre, 
-  fun = function(x) sum(ifelse(!is.na(x), 1, 0))
+  fun = function(x) sum(ifelse(!is.na(x), 1, 0)),
+  value.var = 'filename'
 )
 
 # Restate files according to folders/genres containing them
@@ -36,16 +37,23 @@ screenplayPaths <- screenplayPaths[
 
 # Import all screenplays
 screenplays <- lapply(
-  screenplayPaths$path,
-  function(path) data.table::fread(
-    file.path(pathIMSDB, path)
-    , sep = NULL
-    , header = FALSE
-    , col.names = 'string'
-    , quote = ""
-    , strip.white = FALSE
-    , blank.lines.skip = TRUE
-  )
+  seq(nrow(screenplayPaths)),
+  function(index) {
+    screenplay <- data.table::fread(
+      file.path(pathIMSDB, screenplayPaths[index]$path)
+      , sep = NULL
+      , header = FALSE
+      , col.names = 'string'
+      , quote = ""
+      , strip.white = FALSE
+      , blank.lines.skip = TRUE
+    )
+    
+    list(
+      'screenplay' = screenplay,
+      'movie' = gsub('.txt', '', screenplayPaths[index]$filename, fixed = TRUE)
+    )
+  }
 )
 
 # Calculate statistics for each line and each screenplay to later infer
@@ -60,17 +68,51 @@ screenplays <- lapply(
 #
 # Note: This takes ~10 min, but you can monitor the progress by following
 # the current movie being analyzed, which is done alphabetically.
-screenplayStats <- rbindlist(lapply(
-  seq(length(screenplays)),
-  function(index) {
-    filename <- screenplayPaths[index]$filename
-    movie <- gsub('.txt', '', filename, fixed = TRUE)
-    
-    cat(paste0(filename, '\n'))
-    
-    GetMovieTranscriptStats(screenplays[[index]])[, movie := movie]
+#
+# The following is a non-parallel version of creating screenplayStats, which
+# takes ~10 min. The parallelized version takes ~5 min.
+#
+# screenplayStats <- rbindlist(lapply(
+#   screenplays,
+#   function(screenplayList) {
+#     cat(paste0(screenplayList[[2]], '\n'))
+# 
+#     GetMovieTranscriptStats(
+#       screenplayList[[1]]
+#     )[
+#       , movie := screenplayList[[2]]
+#     ]
+#   }
+# ))
+
+functionsToExport <- list(
+  'GetMovieTranscriptStats',
+  'CreateRegexFilter.token',
+  'CreateRegexFilter'
+)
+cl <- snow::makeCluster(4, type = 'SOCK')
+clusterCall(cl, function(x) library(data.table))
+clusterCall(cl, function(x) library(magrittr))
+clusterCall(cl, function(x) library(stringi))
+clusterExport(
+  cl,
+  functionsToExport,
+  environment()
+)
+start_time <- Sys.time()
+screenplayStats <- rbindlist(parLapply(
+  cl,
+  screenplays,
+  function(screenplayList) {
+    GetMovieTranscriptStats(
+      screenplayList[[1]]
+    )[
+      , movie := screenplayList[[2]]
+    ]
   }
 ))
+end_time <- Sys.time()
+stopCluster(cl)
 
 # Identify movies with regular indentation formatting in order to maximize
 # confidence in well structured screenplay transformations.
@@ -96,6 +138,12 @@ screenplayIndentationStats <- screenplayStats[
         , pctTokensCapitalized = sum(capitalizedTokenCount) / sum(tokenCount)
         , pctTokensCharacterMention = 
             sum(tokenCountCharacterMention) / sum(tokenCount)
+        , pctTokensCharacterMentionCapitalized = 
+            sum(tokenCountCharacterMentionCapitalized) / sum(tokenCount)
+        , pctLinesCharacterMention = 
+            sum(tokenCountCharacterMention) / sum(tokenCount)
+        , pctLinesCharacterMentionCapitalized = 
+            sum(tokenCountCharacterMentionCapitalized) / sum(tokenCount)
         , pctLinesCharacterDirection = sum(characterDirectionInd) / .N
         , pctLinesCapitalized = sum(allCapsInd) / .N
         , pctLinesSetting = sum(settingInd) / .N
@@ -113,19 +161,21 @@ screenplayIndentationStats <- screenplayStats[
   !is.na(pctTokensCharacterMention)
 ][
   # Assume that left-spacing with "consistent" usage/variations of I, you, and
-  # questions denote dialogue.
+  # questions denote dialogue (so long as at least 1% of tokens occur).
   # More specifically, assume that any pairs of pctRecords* fields with at least
   # 0.01 records denote dialogue.
-  , dialogueInd := ifelse(
-      (pctTokensI > 0.01 & pctTokensYou > 0.01) | 
-        (pctTokensI > 0.01 & pctTokensQuestionMark > 0.01) |
-        (pctTokensI > 0.01 & pctTokensQuestionWord > 0.01) |
-        (pctTokensYou > 0.01 & pctTokensQuestionMark > 0.01) |
-        (pctTokensYou > 0.01 & pctTokensQuestionWord > 0.01) |
-        (pctTokensWe > 0.01 & pctTokensI > 0.01) |
-        (pctTokensWe > 0.01 & pctTokensYou > 0.01) |
-        (pctTokensWe > 0.01 & pctTokensQuestionMark > 0.01) |
-        (pctTokensWe > 0.01 & pctTokensQuestionWord > 0.01),
+  , dialogueIndentInd := ifelse(
+      pctTokens > 0.01 & (
+          (pctTokensI > 0.01 & pctTokensYou > 0.01) | 
+          (pctTokensI > 0.01 & pctTokensQuestionMark > 0.01) |
+          (pctTokensI > 0.01 & pctTokensQuestionWord > 0.01) |
+          (pctTokensYou > 0.01 & pctTokensQuestionMark > 0.01) |
+          (pctTokensYou > 0.01 & pctTokensQuestionWord > 0.01) |
+          (pctTokensWe > 0.01 & pctTokensI > 0.01) |
+          (pctTokensWe > 0.01 & pctTokensYou > 0.01) |
+          (pctTokensWe > 0.01 & pctTokensQuestionMark > 0.01) |
+          (pctTokensWe > 0.01 & pctTokensQuestionWord > 0.01)
+      ),
       1,
       0
   )
@@ -133,8 +183,8 @@ screenplayIndentationStats <- screenplayStats[
   # Assume that left-spacing that doesn't appear to be dialogue but also has
   # at least 35% of tokens mentioning inferred characters denotes character 
   # headers.
-  , characterInd := ifelse(
-      dialogueInd == 0 &
+  , characterIndentInd := ifelse(
+      dialogueIndentInd == 0 &
         pctTokensCharacterMention > 0.35,
       1,
       0
@@ -143,9 +193,9 @@ screenplayIndentationStats <- screenplayStats[
   # Assume that left-spacing that isn't inferred dialogue or character headers
   # represents scene descriptions (so long as it has at least 10% lines per 
   # screenplay).
-  , descriptionInd := ifelse(
-      dialogueInd == 0 &
-        characterInd == 0 &
+  , descriptionIndentInd := ifelse(
+      dialogueIndentInd == 0 &
+        characterIndentInd == 0 &
         pctRecords > 0.1,
       1,
       0
@@ -155,24 +205,51 @@ screenplayIndentationStats <- screenplayStats[
   # but also has elements appearing to describe settings (e.g., EXT. 
   # AMY'S HOUSE) denotes setting changes.
   # a setting
-  , settingInd := ifelse(
-      dialogueInd == 0 &
-        characterInd == 0 &
+  , settingIndentInd := ifelse(
+      dialogueIndentInd == 0 &
+        characterIndentInd == 0 &
         pctLinesSetting > 0.01,
+      1,
+      0
+  )
+][
+  # Redefine character direction indicator to only accept its value if it does 
+  # not occur on an inferred description line. When this component appears in a
+  # description line, it tends to be a genuine parenthetical note and not
+  # a direction for an actor.
+  , characterDirectionIndentInd := ifelse(
+      pctLinesCharacterDirection > 0.35 &
+        descriptionIndentInd == 0,
+      1,
+      0
+  )
+][
+  # Attempt at identifying indents that are amibiguous, i.e., they look like
+  # important components (and they are) but they are many components.
+  #
+  # Not too selective yet. Big offenders are:
+  #        myweekwithmarilyn & romeojuliet
+  , mixedCharacterWithDialogueIndentInd := ifelse(
+      pctLinesCharacterMentionCapitalized > 0.02 &
+        pctLinesCharacterMention > 0.02 &
+        dialogueIndentInd == 1 &
+        pctTokens > 0.3,
       1,
       0
   )
 ]
 
 fieldsScreenplayComponents <- c(
-  'dialogueInd',
-  'characterInd',
-  'descriptionInd',
-  'settingInd'
+  'dialogueIndentInd',
+  'characterIndentInd',
+  'descriptionIndentInd',
+  'settingIndentInd',
+  'characterDirectionIndentInd',
+  'mixedCharacterWithDialogueIndentInd'
 )
 fieldsComponentCounts <- gsub(
-  'Ind',
-  'IndentationCount',
+  'IndentInd',
+  'IndentCount',
   fieldsScreenplayComponents
 )
 
@@ -187,18 +264,18 @@ screenplayIndentationStats[
   , `:=` (
     entropy = -sum(pctTokens * log(pctTokens, base = 2))
     , pctRecordsDropped = sum(ifelse(
-        dialogueInd == 0 &
-          characterInd == 0 &
-          descriptionInd == 0 &
-          settingInd == 0,
+        dialogueIndentInd == 0 &
+          characterIndentInd == 0 &
+          descriptionIndentInd == 0 &
+          settingIndentInd == 0,
         pctRecords,
         0
     ))
     , pctTokensDropped = sum(ifelse(
-        dialogueInd == 0 &
-          characterInd == 0 &
-          descriptionInd == 0 &
-          settingInd == 0,
+        dialogueIndentInd == 0 &
+          characterIndentInd == 0 &
+          descriptionIndentInd == 0 &
+          settingIndentInd == 0,
         pctTokens,
         0
     ))
@@ -213,12 +290,14 @@ screenplayIndentationStats[
 fieldsMovieLevel <- c('movie', 'entropy', 'pctRecordsDropped',
                       'pctTokensDropped', fieldsComponentCounts)
 screenplaySelectionDraft <- unique(screenplayIndentationStats[
+  !(movie %in% c('romeojuliet', 'myweekwithmarilyn'))
+][
   , mget(fieldsMovieLevel)
 ])[
-  dialogueIndentationCount > 0 & 
-    characterIndentationCount > 0 & 
-    descriptionIndentationCount > 0 &
-    settingIndentationCount > 0 &
+  dialogueIndentCount > 0 & 
+    characterIndentCount > 0 & 
+    descriptionIndentCount > 0 &
+    settingIndentCount > 0 &
     pctTokensDropped < 0.05
 ][
   order(entropy)
@@ -235,12 +314,11 @@ screenplaySelectionDraft <- unique(screenplayIndentationStats[
 # or setting components tend to be poorly formatted overall, and so not worth
 # transforming.
 #
-# There are 404 screenplays in screenplaySelection.
+# There are 427 screenplays in screenplaySelection.
 screenplaySelection <- screenplaySelectionDraft[
-  dialogueIndentationCount <= 3 & 
-    characterIndentationCount <= 2 & 
-    descriptionIndentationCount == 1 & 
-    settingIndentationCount == 1
+  dialogueIndentCount <= 3 & 
+    characterIndentCount <= 2 & 
+    descriptionIndentCount == 1
 ]
 
 # Create subset of screenplayIndentationStats for selected screenplays.
