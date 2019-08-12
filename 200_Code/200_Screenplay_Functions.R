@@ -109,40 +109,68 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   # Create regex filter to remove html bold tags
   filterBold <- '<b>|</b>'
   
+  # Create regex filter to remove artifacts from webscraping by NLDS of UCSD
+  filterScraping <- 
+    'if \\(window!= top\\)|top\\.location\\.href=location\\.href'
+  
   # Create combined filter to remove the items below
   filterToRemove <- paste0(
     c(
       filterContinued,
       filterVoiceOver,
-      filterBold
+      filterBold,
+      filterScraping
     ),
     collapse = '|'
   )
   
+  # Create regex filter to find and remove apparent page numbers
+  filterPageNumbersLeft <- 
+    '^([:digit:])+([\\.-])?([:alpha:]+)?([\\.-])?(?=[ ]{2,}[:alnum:])'
+  filterPageNumbersRight <- 
+    '([:digit:])+([\\.-])?([:alpha:]+)?([\\.-])?([ ]{0,2})?$'
+  
+  # Create regex filter to find leading spaces to track indentation patterns
+  filterLeftSpaces <- '^[ ]*(?=[^ ])'
+  
   rawTranscript[
     # Convert any tabs to 4 spaces
     , `:=` (
-      string = gsub('\t', '    ', string)
+      string = stri_replace_all_fixed(string, '\t', '    ')
       , lineNumber = 1:.N
     )
   ][
     # Remove "continued" & "voice over" labels since they often are adjacent
     # to character labels, and remove html bold tags
-    , string := gsub(
-        filterToRemove,
-        '',
-        string,
-        ignore.case = TRUE
-    )
+    , string := stri_replace_all_regex(
+                  string,
+                  filterToRemove,
+                  '',
+                  opts_regex = stri_opts_regex(case_insensitive = TRUE)
+                )
   ][
-    # Create string field with no left-space padding
-    , stringNoLeftPad := trimws(string, 'left')
-    , by = lineNumber
+    # Find any apparent page numbers that appear before the main content.
+    # Extract these to get their character length to replace later with
+    # spaces (to preserve indentation).
+    , pageNumberStringLength := stri_extract_first_regex(
+            string,
+            filterPageNumbersLeft
+         ) %>% nchar 
   ][
-    # Create string field of *only* the left-space padding
-    nzchar(string) & nzchar(stringNoLeftPad)
-    , stringOnlyLeftPad := gsub(stringNoLeftPad, '', string, fixed = TRUE)
-    , by = lineNumber
+    !is.na(pageNumberStringLength)
+    # Remove apparent page numbers on left hand sides of each line.
+    , string := stri_replace_all_regex(
+                  string,
+                  filterPageNumbersLeft,
+                  stri_pad_left('', pageNumberStringLength)
+        )
+  ][
+    # Remove apparent page numbers on left hand sides of each line.
+    , string := stri_replace_all_regex(
+                  string,
+                  filterPageNumbersRight,
+                  ''
+                )
   ]
   
   # Create token count per line and only keep lines with at least 1 token
@@ -152,23 +180,25 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   rawTranscript[
     # Create many support indicators and counters
     , `:=` (
-      lineNumber = 1:.N
-      , leftSpaceCount = nchar(stringOnlyLeftPad)
+      leftSpaceCount = stri_extract_all_regex(
+                            string,
+                            filterLeftSpaces
+                         ) %>% nchar
       , capitalizedTokenCount = stri_count(string, regex="[A-Z]{2,}")
       , characterDirectionInd = ifelse(
-          grepl(filterCharacterDirection, string),
+          stri_detect_regex(string, filterCharacterDirection),
           1,
           0
       )
-      , tokenCountI = stri_count(tolower(string), regex = filterI)
-      , tokenCountYou = stri_count(tolower(string), regex = filterYou)
-      , tokenCountWe = stri_count(tolower(string), regex = filterWe)
+      , tokenCountI = stri_count(stri_trans_tolower(string), regex = filterI)
+      , tokenCountYou = stri_count(
+                          stri_trans_tolower(string),
+                          regex = filterYou
+                        )
+      , tokenCountWe = stri_count(stri_trans_tolower(string), regex = filterWe)
       , tokenCountQuestionMark = stri_count(string, regex = "\\?")
       , tokenCountQuestionWord = stri_count(string, regex = filterQuestionWords)
-      , tokenCountOddPunctuation = stri_count(
-          tolower(string),
-          regex = '\\!|\\?|,|:'
-      )
+      , tokenCountOddPunctuation = stri_count(string, regex = '\\!|\\?|,|:')
     )
   ][
     , allCapsInd := ifelse(
@@ -181,10 +211,10 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     # Create indicator for presence of "setting description"
     # E.g., EXT. TIMES SQUARE
     , settingInd := ifelse(
-        !nzchar(stringNoLeftPad)
+        !nzchar(string)
         , 0
         , ifelse(
-            grepl(filterSetting, stringNoLeftPad)
+            stri_detect_regex(stri_trim(string), filterSetting)
             , 1
             , 0
         )
@@ -202,7 +232,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     tokenCountOddPunctuation == 0
     , .N
     , by = .(
-      string = tolower(trimws(string))
+      string = stri_trim(string) %>% stri_trans_tolower
     )
   ][order(-N)][N > 10, string] %>% paste0(collapse = '|')
   
@@ -213,8 +243,15 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   } else {
     rawTranscript[
       , tokenCountCharacterMention := stri_count(
-          tolower(trimws(string)),
+          stri_trim(string) %>% stri_trans_tolower,
           regex = freqCharacters
+      )
+    ]
+    
+    rawTranscript[
+      , tokenCountCharacterMentionCapitalized := stri_count(
+          stri_trim(string),
+          regex = stri_trans_toupper(freqCharacters)
       )
     ]
   }
