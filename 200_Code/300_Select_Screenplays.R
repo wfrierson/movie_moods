@@ -10,13 +10,13 @@ source(path.screenplayFunctions)
 pathIMSDB <- file.path(folder.data, 'imsdb_raw_nov_2015')
 
 # Get paths to all scraped imsdb screenplays
-screenplayPaths <- data.table(
+screenplayPaths <- data.table::data.table(
   path = list.files(path = pathIMSDB, pattern = '*.txt', recursive = TRUE)
 )
 
 # Split out fields
-screenplayPaths[, c('genre', 'filename') := tstrsplit(path, '/')]
-screenplayGenres <- dcast(
+screenplayPaths[, c('genre', 'filename') := data.table::tstrsplit(path, '/')]
+screenplayGenres <- data.table::dcast(
   screenplayPaths, 
   filename ~ genre, 
   fun = function(x) sum(ifelse(!is.na(x), 1L, 0L)),
@@ -91,15 +91,15 @@ functionsToExport <- list(
   'CreateRegexFilter'
 )
 cl <- snow::makeCluster(4, type = 'SOCK')
-clusterCall(cl, function(x) library(data.table))
-clusterCall(cl, function(x) library(magrittr))
-clusterCall(cl, function(x) library(stringi))
-clusterExport(
+snow::clusterCall(cl, function(x) library(data.table))
+snow::clusterCall(cl, function(x) library(magrittr))
+snow::clusterCall(cl, function(x) library(stringi))
+snow::clusterExport(
   cl,
   functionsToExport,
   environment()
 )
-screenplayStats <- rbindlist(parLapply(
+screenplayStats <- rbindlist(snow::parLapply(
   cl,
   screenplays,
   function(screenplayList) {
@@ -110,7 +110,7 @@ screenplayStats <- rbindlist(parLapply(
     ]
   }
 ))
-stopCluster(cl)
+snow::stopCluster(cl)
 
 # Identify movies with regular indentation formatting in order to maximize
 # confidence in well structured screenplay transformations.
