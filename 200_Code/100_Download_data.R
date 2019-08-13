@@ -1,3 +1,6 @@
+###############################################################################
+# SCREENPLAY CORPUS
+#
 # Downloading and unzipping a corpus of digitized screenplays from the National 
 # Language and Dialogue Systems (NLDS) lab of UC Santa Cruz.
 #
@@ -13,7 +16,8 @@ name.screenplays <- 'imsdb_raw_nov_2015.zip'
 
 path.screenplays <- file.path(folder.data, name.screenplays)
 
-url.screenplays <- 'http://nldslab.soe.ucsc.edu/film_corpus_2/imsdb_raw_nov_2015.zip'
+url.screenplays <- 
+  'http://nldslab.soe.ucsc.edu/film_corpus_2/imsdb_raw_nov_2015.zip'
 
 download.file(url.screenplays, path.screenplays)
 
@@ -23,10 +27,14 @@ unzip(path.screenplays, exdir = folder.data)
 file.remove(path.screenplays)
 unlink(file.path(folder.data, '__MACOSX'), recursive = TRUE)
 
+###############################################################################
+# NRC EMOTION LEXICON
+#
 # Download Emotion Lexicon dataset from NRC website
 url.nrc.sentiment <- 'http://sentiment.nrc.ca/lexicons-for-research/'
 name.emolex <- 'NRC-Emotion-Lexicon.zip'
-file.emolex <- 'NRC-Emotion-Lexicon-v0.92/NRC-Emotion-Lexicon-Wordlevel-v0.92.txt'
+file.emolex <- 
+  'NRC-Emotion-Lexicon-v0.92/NRC-Emotion-Lexicon-Wordlevel-v0.92.txt'
 
 destfile.emolex <- file.path(folder.data, name.emolex)
 
@@ -64,8 +72,12 @@ dictionary.NRC <- emolex[AssociationFlag == TRUE, Term, AffectCategory] %>%
   map('Term') %>%
   dictionary()
 
+###############################################################################
+# IMDB DATA
+#
 # Download IMDb dataset tables
-# We don't need to extract them in advance since we can read directly from a gzfile
+# We don't need to extract them in advance since we can read directly from a 
+# gzfile
 
 folder.data.imdb <- file.path(folder.data, 'imdb')
 
