@@ -19,7 +19,7 @@ screenplayPaths[, c('genre', 'filename') := tstrsplit(path, '/')]
 screenplayGenres <- dcast(
   screenplayPaths, 
   filename ~ genre, 
-  fun = function(x) sum(ifelse(!is.na(x), 1, 0)),
+  fun = function(x) sum(ifelse(!is.na(x), 1L, 0L)),
   value.var = 'filename'
 )
 
@@ -354,6 +354,13 @@ screenplayStatsSelection <- screenplaySelection[,.(movie)][
 ]
 
 # Export results
+data.table::fwrite(
+  screenplayPaths
+  , file.path(folder.data, 'screenplayPaths.csv')
+  , quote = FALSE
+  , row.names = FALSE
+)
+
 data.table::fwrite(
   screenplaySelection
   , file.path(folder.data, 'screenplaySelection.csv')
