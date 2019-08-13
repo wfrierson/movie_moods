@@ -96,7 +96,12 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     tokenVector = c('INTERIOR', 'EXTERIOR'), 
     filterTemplate = "^%s | %s "
   )
-  filterSetting <- paste0(filterSettingShort, '|', filterSettingLong)
+  filterSettingCombo <- 'INT\\./EXT\\.'
+  filterSetting <- paste0(
+    filterSettingShort, '|'
+    , filterSettingLong, '|'
+    , filterSettingCombo
+  )
   
   # Create regex filters to identify variations of "(continued)" and 
   # '(voice over)'  labels
