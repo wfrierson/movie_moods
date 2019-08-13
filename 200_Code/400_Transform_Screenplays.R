@@ -132,15 +132,20 @@ screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
 # are not identified.
 #
 # Code:
-# screenplayTransformed[, .N / nrow(screenplayTransformed), keyby = component]
+# screenplayTransformed[
+#   , .(
+#     pctSections = .N / nrow(screenplayTransformed)
+#   )
+#   , keyby = component
+# ]
 #
 # Output:
 #
-#      component         V1
-# 1:        <NA> 0.01142770
-# 2: description 0.32064152
-# 3:    dialogue 0.56881829
-# 4:     setting 0.09911248
+#      component          pctSections
+# 1:        <NA> 0.008622927
+# 2: description 0.320978184
+# 3:    dialogue 0.570731676
+# 4:     setting 0.099667214
 
 # Exporting as compressed file to avoid github's 100 MB per file limit.
 saveRDS(
