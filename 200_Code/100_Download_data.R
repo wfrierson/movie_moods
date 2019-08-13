@@ -16,11 +16,14 @@ name.screenplays <- 'imsdb_raw_nov_2015.zip'
 
 path.screenplays <- file.path(folder.data, name.screenplays)
 
-url.screenplays <- 
-  'http://nldslab.soe.ucsc.edu/film_corpus_2/imsdb_raw_nov_2015.zip'
+# Download the dataset ZIP file if we haven't done so already
+if (!file.exists(path.screenplays)) {
+  url.screenplays <- 
+    'http://nldslab.soe.ucsc.edu/film_corpus_2/imsdb_raw_nov_2015.zip'
+  download.file(url.screenplays, path.screenplays)
+}
 
-download.file(url.screenplays, path.screenplays)
-
+# Extract all screenplays
 unzip(path.screenplays, exdir = folder.data)
 
 # Remove zip file and unnecessary "__MACOSX" folder
@@ -30,6 +33,12 @@ unlink(file.path(folder.data, '__MACOSX'), recursive = TRUE)
 ###############################################################################
 # NRC EMOTION LEXICON
 #
+# The following section downloads the NRC emotinal lexicon and prepares it for
+# use in sentiment analysis. It is exactly same as data_dictionary_NRC in the
+# quanteda.dictionaries development package. However, since this package is not
+# available on iCRAN and may change, we are reproducing the dictionary below for
+# completeness.
+
 # Download Emotion Lexicon dataset from NRC website
 url.nrc.sentiment <- 'http://sentiment.nrc.ca/lexicons-for-research/'
 name.emolex <- 'NRC-Emotion-Lexicon.zip'
@@ -71,6 +80,21 @@ dictionary.NRC <- emolex[AssociationFlag == TRUE, Term, AffectCategory] %>%
   split(f = .$`AffectCategory`) %>%
   map('Term') %>%
   dictionary()
+
+# For comparison, confirm dictionary.NRC equals the NRC dictionary in
+# quanteda.dictionaries. Should be TRUE.
+#
+# all.equal(quanteda.dictionaries::data_dictionary_NRC, dictionary.NRC)
+
+# Export NRC emotion lexicon
+saveRDS(
+  dictionary.NRC
+  , file.path(folder.data, 'dictionary.NRC.rds')
+)
+
+# Remove zip file and extracted folder
+file.remove(file.path(folder.data, name.emolex))
+unlink(file.path(folder.data, 'NRC-Emotion-Lexicon-v0.92'), recursive = TRUE)
 
 ###############################################################################
 # IMDB DATA
