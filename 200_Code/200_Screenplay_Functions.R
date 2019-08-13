@@ -12,7 +12,7 @@ CreateRegexFilter.token <- function(
   token, 
   filterTemplate = "\\b%s\\b|\\b%s\\.\\b|\\b%s,\\b"
 ) {
-  repititions <- stri_count(filterTemplate, fixed = '%s')
+  repititions <- stringi::stri_count(filterTemplate, fixed = '%s')
   tokenRepeated <- rep(token, repititions)
   argsSprintf <- as.list(c(filterTemplate, tokenRepeated))
   
@@ -55,7 +55,7 @@ CreateRegexFilter <- function(
 #' GetMovieTranscriptStats(screenplays[[1]])
 GetMovieTranscriptStats <- function(rawTranscript) {
   # Make copy to preserve original data for comparison/diagnostics
-  rawTranscript <- copy(rawTranscript)
+  rawTranscript <- data.table::copy(rawTranscript)
   
   # Create filter to count specific types of tokens
   filterTokenCount <- "\\b[a-zA-Z0-9]{2,}\\b"
@@ -155,7 +155,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   rawTranscript[
     # Convert any tabs to 4 spaces
     , `:=` (
-      string = stri_replace_all_fixed(string, '\t', '    ')
+      string = stringi::stri_replace_all_fixed(string, '\t', '    ')
       , lineNumber = 1:.N
     )
   ][
@@ -165,56 +165,70 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   ][
     # Remove "continued" & "voice over" labels since they often are adjacent
     # to character labels, and remove html bold tags
-    , string := stri_replace_all_regex(
+    , string := stringi::stri_replace_all_regex(
                   string,
                   filterToRemove,
                   '',
-                  opts_regex = stri_opts_regex(case_insensitive = TRUE)
+                  opts_regex = stringi::stri_opts_regex(case_insensitive = TRUE)
                 )
   ][
     # Find any apparent page numbers that appear before the main content.
     # Extract these to get their character length to replace later with
     # spaces (to preserve indentation).
-    , pageNumberStringLength := stri_extract_first_regex(
+    , pageNumberStringLength := stringi::stri_extract_first_regex(
                                    string,
                                    filterPageNumbersLeft
                                 ) %>% nchar 
   ][
     !is.na(pageNumberStringLength)
     # Remove apparent page numbers on left hand sides of each line.
-    , string := stri_replace_all_regex(
+    , string := stringi::stri_replace_all_regex(
                   string,
                   filterPageNumbersLeft,
-                  stri_pad_left('', pageNumberStringLength)
+                  stringi::stri_pad_left('', pageNumberStringLength)
                 )
   ]
   
   # Create token count per line and only keep lines with at least 1 token
-  rawTranscript[, tokenCount := stri_count(string, regex = filterTokenCount)]
+  rawTranscript[
+    , tokenCount := stringi::stri_count(string, regex = filterTokenCount)
+  ]
   rawTranscript <- rawTranscript[tokenCount > 0]
   
   rawTranscript[
     # Create many support indicators and counters
     , `:=` (
-      leftSpaceCount = stri_extract_all_regex(
+      leftSpaceCount = stringi::stri_extract_all_regex(
                             string,
                             filterLeftSpaces
                          ) %>% nchar
-      , capitalizedTokenCount = stri_count(string, regex="[A-Z]{2,}")
+      , capitalizedTokenCount = stringi::stri_count(string, regex="[A-Z]{2,}")
       , characterDirectionInd = ifelse(
-          stri_detect_regex(string, filterCharacterDirection),
+          stringi::stri_detect_regex(string, filterCharacterDirection),
           1,
           0
       )
-      , tokenCountI = stri_count(stri_trans_tolower(string), regex = filterI)
-      , tokenCountYou = stri_count(
-                          stri_trans_tolower(string),
+      , tokenCountI = stringi::stri_count(
+                        stri_trans_tolower(string),
+                        regex = filterI
+                      )
+      , tokenCountYou = stringi::stri_count(
+                          stringi::stri_trans_tolower(string),
                           regex = filterYou
                         )
-      , tokenCountWe = stri_count(stri_trans_tolower(string), regex = filterWe)
-      , tokenCountQuestionMark = stri_count(string, regex = "\\?")
-      , tokenCountQuestionWord = stri_count(string, regex = filterQuestionWords)
-      , tokenCountOddPunctuation = stri_count(string, regex = '\\!|\\?|,|:')
+      , tokenCountWe = stringi::stri_count(
+                          stringi::stri_trans_tolower(string),
+                          regex = filterWe
+                       )
+      , tokenCountQuestionMark = stringi::stri_count(string, regex = "\\?")
+      , tokenCountQuestionWord = stringi::stri_count(
+                                    string,
+                                    regex = filterQuestionWords
+                                 )
+      , tokenCountOddPunctuation = stringi::stri_count(
+                                      string,
+                                      regex = '\\!|\\?|,|:'
+                                   )
     )
   ][
     , allCapsInd := ifelse(
@@ -230,7 +244,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
         !nzchar(string)
         , 0
         , ifelse(
-            stri_detect_regex(stri_trim(string), filterSetting)
+            stringi::stri_detect_regex(stri_trim(string), filterSetting)
             , 1
             , 0
         )
@@ -248,7 +262,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     tokenCountOddPunctuation == 0
     , .N
     , by = .(
-      string = stri_trim(string) %>% stri_trans_tolower
+      string = stringi::stri_trim(string) %>% stringi::stri_trans_tolower
     )
   ][order(-N)][N > 10, string] %>% paste0(collapse = '|')
   
@@ -258,16 +272,16 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     rawTranscript[, tokenCountCharacterMention := 0]
   } else {
     rawTranscript[
-      , tokenCountCharacterMention := stri_count(
-          stri_trim(string) %>% stri_trans_tolower,
+      , tokenCountCharacterMention := stringi::stri_count(
+          stringi::stri_trim(string) %>% stringi::stri_trans_tolower,
           regex = freqCharacters
       )
     ]
     
     rawTranscript[
-      , tokenCountCharacterMentionCapitalized := stri_count(
-          stri_trim(string),
-          regex = stri_trans_toupper(freqCharacters)
+      , tokenCountCharacterMentionCapitalized := stringi::stri_count(
+          stringi::stri_trim(string),
+          regex = stringi::stri_trans_toupper(freqCharacters)
       )
     ]
   }
