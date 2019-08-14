@@ -1,3 +1,9 @@
+###############################################################################
+# This script produces a set of data.tables representing selected screenplays 
+# to use in this project. These scripts will later be transformed according to
+# their "components": scene descriptions, setting descriptions, and dialogue
+# from each character.
+
 folder.data <- '100_Data'
 folder.code <- '200_Code'
 
@@ -35,6 +41,7 @@ screenplayPaths <- screenplayPaths[
   filename != 'mightymorphinpowerrangersthemovie.txt'
 ]
 
+###############################################################################
 # Import all screenplays
 screenplays <- lapply(
   seq(nrow(screenplayPaths)),
@@ -56,6 +63,7 @@ screenplays <- lapply(
   }
 )
 
+###############################################################################
 # Calculate statistics for each line and each screenplay to later infer
 # which lines can be used for the following screenplay components:
 #    dialogue, character labels, scene changes, and scene descriptions
@@ -112,6 +120,7 @@ screenplayStats <- rbindlist(snow::parLapply(
 ))
 snow::stopCluster(cl)
 
+###############################################################################
 # Identify movies with regular indentation formatting in order to maximize
 # confidence in well structured screenplay transformations.
 screenplayIndentationStats <- screenplayStats[
@@ -297,6 +306,7 @@ screenplayIndentationStats[
   , by = movie
 ]
 
+###############################################################################
 # Create draft of well-structured screenplays where:
 #    * Each screenplay component occurs at least once,
 #    * At most 5% of all tokens per screenplay are omitted by only keeping the
@@ -321,6 +331,7 @@ screenplaySelectionDraft <- unique(screenplayIndentationStats[
   order(entropy)
 ]
 
+###############################################################################
 # Limit possible screenplays further by only keeping those that have exactly
 # one inferred description and setting component, and at most 2 character
 # header components and 3 dialogue components.
@@ -353,6 +364,7 @@ screenplayStatsSelection <- screenplaySelection[,.(movie)][
   , nomatch = FALSE
 ]
 
+###############################################################################
 # Export results
 data.table::fwrite(
   screenplayPaths
