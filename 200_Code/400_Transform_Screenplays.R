@@ -143,7 +143,7 @@ screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
 #
 # Output:
 #
-#      component          pctSections
+#      component pctSections
 # 1:        <NA> 0.008622927
 # 2: description 0.320978184
 # 3:    dialogue 0.570731676
