@@ -5,6 +5,8 @@
 # from each character.
 
 folder.data <- '100_Data'
+folder.data.raw <- file.path(folder.data, '110_Raw_Data')
+folder.data.processed <- file.path(folder.data, '120_Processed_Data')
 folder.code <- '200_Code'
 
 path.dependencies <- file.path(folder.code, '000_Dependencies.R')
@@ -13,7 +15,7 @@ path.screenplayFunctions <- file.path(folder.code, '200_Screenplay_Functions.R')
 source(path.dependencies)
 source(path.screenplayFunctions)
 
-pathIMSDB <- file.path(folder.data, 'imsdb_raw_nov_2015')
+pathIMSDB <- file.path(folder.data.raw, 'imsdb_raw_nov_2015')
 
 # Get paths to all scraped imsdb screenplays
 screenplayPaths <- data.table::data.table(
@@ -368,21 +370,21 @@ screenplayStatsSelection <- screenplaySelection[,.(movie)][
 # Export results
 data.table::fwrite(
   screenplayPaths
-  , file.path(folder.data, 'screenplayPaths.csv')
+  , file.path(folder.data.processed, 'screenplayPaths.csv')
   , quote = FALSE
   , row.names = FALSE
 )
 
 data.table::fwrite(
   screenplaySelection
-  , file.path(folder.data, 'screenplaySelection.csv')
+  , file.path(folder.data.processed, 'screenplaySelection.csv')
   , quote = FALSE
   , row.names = FALSE
 )
 
 data.table::fwrite(
   screenplayIndentationStatsSelection
-  , file.path(folder.data, 'screenplayIndentationStatsSelection.csv')
+  , file.path(folder.data.processed, 'screenplayIndentationStatsSelection.csv')
   , quote = FALSE
   , row.names = FALSE
 )
@@ -390,5 +392,5 @@ data.table::fwrite(
 # Exporting as compressed file to avoid github's 100 MB per file limit.
 saveRDS(
   screenplayStatsSelection
-  , file.path(folder.data, 'screenplayStatsSelection.rds')
+  , file.path(folder.data.processed, 'screenplayStatsSelection.rds')
 )
