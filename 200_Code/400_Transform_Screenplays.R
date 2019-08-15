@@ -1,16 +1,18 @@
 folder.data <- '100_Data'
+folder.data.raw <- file.path(folder.data, '110_Raw_Data')
+folder.data.processed <- file.path(folder.data, '120_Processed_Data')
 folder.code <- '200_Code'
 
 path.dependencies <- file.path(folder.code, '000_Dependencies.R')
 source(path.dependencies)
 
 screenplayIndentationStatsSelection <- fread(
-  file.path(folder.data, 'screenplayIndentationStatsSelection.csv')
+  file.path(folder.data.processed, 'screenplayIndentationStatsSelection.csv')
   , stringsAsFactors = FALSE
 )
 
 screenplayStatsSelection <- readRDS(
-  file.path(folder.data, 'screenplayStatsSelection.rds')
+  file.path(folder.data.processed, 'screenplayStatsSelection.rds')
 )
 
 # Retain indentations inferred as screenplay components
@@ -150,5 +152,5 @@ screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
 # Exporting as compressed file to avoid github's 100 MB per file limit.
 saveRDS(
   screenplayTransformed
-  , file.path(folder.data, 'screenplayTransformed.rds')
+  , file.path(folder.data.processed, 'screenplayTransformed.rds')
 )
