@@ -1,8 +1,11 @@
 ###############################################################################
 # This script produces a set of data.tables representing selected screenplays 
-# to use in this project. These scripts will later be transformed according to
-# their "components": scene descriptions, setting descriptions, and dialogue
+# to use in this project. These screenplays will later be transformed according 
+# to their "components": scene descriptions, setting descriptions, and dialogue
 # from each character.
+
+###############################################################################
+# SETUP
 
 folder.data <- '100_Data'
 folder.data.raw <- file.path(folder.data, '110_Raw_Data')
@@ -15,6 +18,9 @@ path.screenplayFunctions <- file.path(folder.code, '200_Screenplay_Functions.R')
 source(path.dependencies)
 source(path.screenplayFunctions)
 
+###############################################################################
+# GET SCREENPLAY PATHS AND GENRES
+
 pathIMSDB <- file.path(folder.data.raw, 'imsdb_raw_nov_2015')
 
 # Get paths to all scraped imsdb screenplays
@@ -22,7 +28,7 @@ screenplayPaths <- data.table::data.table(
   path = list.files(path = pathIMSDB, pattern = '*.txt', recursive = TRUE)
 )
 
-# Split out fields
+# Split out fields, genre in particular
 screenplayPaths[, c('genre', 'filename') := data.table::tstrsplit(path, '/')]
 screenplayGenres <- data.table::dcast(
   screenplayPaths, 
@@ -44,7 +50,13 @@ screenplayPaths <- screenplayPaths[
 ]
 
 ###############################################################################
-# Import all screenplays
+# IMPORT SCREENPLAYS
+
+# The screenplays data.table is a nested list, where each element is a named
+# list with the following elements:
+#    * The screenplay itself represented as a data.table
+#    * The name of the movie
+    
 screenplays <- lapply(
   seq(nrow(screenplayPaths)),
   function(index) {
@@ -58,9 +70,12 @@ screenplays <- lapply(
       , blank.lines.skip = TRUE
     )
     
+    filename <- screenplayPaths[index]$filename
+    movie <- gsub('.txt', '', filename, fixed = TRUE)
+    
     list(
       'screenplay' = screenplay,
-      'movie' = gsub('.txt', '', screenplayPaths[index]$filename, fixed = TRUE)
+      'movie' = movie
     )
   }
 )
@@ -76,11 +91,13 @@ screenplays <- lapply(
 # dialogue (to denote who's speaking). Lastly, scene changes often occur with
 # scene descriptions or sometimes on their own indentation level.
 #
-# Note: This takes ~10 min, but you can monitor the progress by following
-# the current movie being analyzed, which is done alphabetically.
+# Screenplays statistics can be calculated with or without parallel processing.
+# The following commented-out code uses no parallel processing (and takes 
+# 10 - 15 min), whereas the proceeding code uses parallel processing (and takes
+# ~5 min). The non-parallel code can monitored by following the current movie 
+# being analyzed which is printed to console.
 #
-# The following is a non-parallel version of creating screenplayStats, which
-# takes ~10 min. The parallelized version takes ~5 min.
+# NON-PARALLEL CODE:
 #
 # screenplayStats <- rbindlist(lapply(
 #   screenplays,
@@ -95,12 +112,18 @@ screenplays <- lapply(
 #   }
 # ))
 
+# Functions to export to each core
 functionsToExport <- list(
   'GetMovieTranscriptStats',
   'CreateRegexFilter.token',
   'CreateRegexFilter'
 )
+
+# NOTE: For those reproducing this, you may need to modify the number of cores, 
+# currently set at 4.
 cl <- snow::makeCluster(4, type = 'SOCK')
+
+# Exporting needed packages and functions to each core
 snow::clusterCall(cl, function(x) library(data.table))
 snow::clusterCall(cl, function(x) library(magrittr))
 snow::clusterCall(cl, function(x) library(stringi))
@@ -109,6 +132,8 @@ snow::clusterExport(
   functionsToExport,
   environment()
 )
+
+# Running parallel code
 screenplayStats <- rbindlist(snow::parLapply(
   cl,
   screenplays,
@@ -370,21 +395,24 @@ screenplayStatsSelection <- screenplaySelection[,.(movie)][
 # Export results
 data.table::fwrite(
   screenplayPaths
-  , file.path(folder.data.processed, 'screenplayPaths.csv')
+  , file.path(folder.data.processed, '301_screenplayPaths.csv')
   , quote = FALSE
   , row.names = FALSE
 )
 
 data.table::fwrite(
   screenplaySelection
-  , file.path(folder.data.processed, 'screenplaySelection.csv')
+  , file.path(folder.data.processed, '302_screenplaySelection.csv')
   , quote = FALSE
   , row.names = FALSE
 )
 
 data.table::fwrite(
   screenplayIndentationStatsSelection
-  , file.path(folder.data.processed, 'screenplayIndentationStatsSelection.csv')
+  , file.path(
+      folder.data.processed,
+      '303_screenplayIndentationStatsSelection.csv'
+    )
   , quote = FALSE
   , row.names = FALSE
 )
@@ -392,5 +420,5 @@ data.table::fwrite(
 # Exporting as compressed file to avoid github's 100 MB per file limit.
 saveRDS(
   screenplayStatsSelection
-  , file.path(folder.data.processed, 'screenplayStatsSelection.rds')
+  , file.path(folder.data.processed, '304_screenplayStatsSelection.rds')
 )
