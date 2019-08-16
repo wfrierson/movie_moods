@@ -39,8 +39,7 @@ unlink(file.path(folder.data.raw, '__MACOSX'), recursive = TRUE)
 ###############################################################################
 # DEPECHEMOOD++
 #
-# The following section downloads the DepecheMood++ emotinal lexicon and 
-# prepares it for use in sentiment analysis.
+# The following section downloads the DepecheMood++ emotional lexicon.
 #
 # Araque, O., Gatti, L., Staiano, J., and Guerini, M. (2018) 
 # "DepecheMood++: a Bilingual Emotion Lexicon Built Through Simple Yet Powerful 
