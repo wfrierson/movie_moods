@@ -96,7 +96,10 @@ screenplayTagged <- data.table::data.table(
 ][
   # Create a field that can match with the key in the DM++
   !is.na(posLabel)
-  , tokenPOS := paste0(token, '#', posLabel)
+  , `:=` (
+    tokenPOS = paste0(token, '#', posLabel),
+    lemmaPOS = paste0(lemma, '#', posLabel)
+  )
 ]
 
 # Append key to maintain screenplay structure
