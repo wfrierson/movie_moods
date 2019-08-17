@@ -81,7 +81,10 @@ treetagOutput <- koRpus::treetag(
 # Convert koRpus tagging object to data.table
 screenplayTagged <- data.table::data.table(
    token = treetagOutput@TT.res$token
+   , tag = treetagOutput@TT.res$tag
+   , lemma = treetagOutput@TT.res$lemma
    , pos = treetagOutput@TT.res$wclass
+   
 )[
   # Create column that mimics the part-of-speech labels from the DM++ lexicon
   , posLabel := ifelse(
