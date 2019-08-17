@@ -81,7 +81,6 @@ treetagOutput <- koRpus::treetag(
 # Convert koRpus tagging object to data.table
 screenplayTagged <- data.table::data.table(
    token = treetagOutput@TT.res$token
-   , tag = treetagOutput@TT.res$tag
    , lemma = treetagOutput@TT.res$lemma
    , pos = treetagOutput@TT.res$wclass
    
