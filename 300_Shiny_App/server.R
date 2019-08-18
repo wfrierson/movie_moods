@@ -8,8 +8,8 @@ shinyServer(function(input, output) {
     dplyr::transmute(
       Movie = rowname,
       Genre = cyl,
-      x = wt,
-      y = mpg
+      x = wt - mean(wt),
+      y = mpg - mean(mpg)
     )
 
   # Start the server for the movieMoodLandscape module
