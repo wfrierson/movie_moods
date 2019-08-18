@@ -76,6 +76,10 @@ shinyUI(
             width = 12,
             height = 300
           )
+        ),
+        hr(),
+        fluidRow(
+          column(width = 12, moodLandscapeIxDebugUi("movieMoodLandscape"))
         )
       )
     )
