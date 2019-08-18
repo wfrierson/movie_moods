@@ -67,6 +67,8 @@ moodLandscapeServer <- function(input, output, session, dataset) {
 
   output$plot <- shiny::renderPlot({plot_obj()})
   
+  
+  
   # Show debug outputs
   output$hover_info <- shiny::renderPrint({
     cat("Hover:\n")
@@ -80,4 +82,12 @@ moodLandscapeServer <- function(input, output, session, dataset) {
     cat("Brush:\n")
     str(input$plot_brush)
   })
+
+  # Return reactiveValues for downstream use
+  vals <- reactiveValues()
+  observe({
+    vals$brushedPoints <- shiny::brushedPoints(dataset, input$plot_brush)
+  })
+
+  return(vals)
 }

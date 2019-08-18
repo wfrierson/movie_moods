@@ -62,7 +62,12 @@ shinyUI(
           box(
             title = "Characters",
             width = 6,
-            height = 300
+            height = 300,
+            moodLandscapeUi(
+              "charactersMoodLandscape",
+              width = "100%",
+              height = "240"
+            )
           ),
           box(
             title = "Mood star for selected characters",
