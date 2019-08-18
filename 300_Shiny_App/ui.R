@@ -6,33 +6,34 @@ source("MoodLandscape.R")
 
 shinyUI(
   fluidPage(
-    theme = shinythemes::shinytheme('darkly'),
+    theme = shinythemes::shinytheme("darkly"),
 
     shinyWidgets::useShinydashboard(),
 
-    titlePanel('Movie Moods'),
+    titlePanel("Movie Moods"),
 
     sidebarLayout(
         
       sidebarPanel(
-        selectInput('filter1', 'Filter 1', c('Choice')),
+        # selectizeInput("search", "Search by Title", c("Choose one" = ""),
+        selectInput("filter1", "Filter 1", c("Choice")),
         sliderInput(
-          'filter2',
-          'Filter 2',
+          "filter2",
+          "Filter 2",
           min = 1,
           max = 50,
           value = c(35, 45)
         ),
         sliderInput(
-          'filter3',
-          'Filter 3',
+          "filter3",
+          "Filter 3",
           min = 1,
           max = 50,
           value = 30
         ),
         sliderInput(
-          'filter4',
-          'Filter 4',
+          "filter4",
+          "Filter 4",
           min = 1,
           max = 50,
           value = 30
