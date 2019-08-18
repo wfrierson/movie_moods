@@ -13,9 +13,15 @@ shinyUI(
     titlePanel("Movie Moods"),
 
     sidebarLayout(
-        
+
       sidebarPanel(
-        # selectizeInput("search", "Search by Title", c("Choose one" = ""),
+        selectizeInput(
+          "search",
+          "Search by Title",
+          choices = c("Select up to 5" = "", dataset$Movie),
+          multiple = TRUE,
+          options = list(maxItems = 5)
+        ),
         selectInput("filter1", "Filter 1", c("Choice")),
         sliderInput(
           "filter2",
