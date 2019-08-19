@@ -14,6 +14,11 @@ folder.code <- '200_Code'
 path.dependencies <- file.path(folder.code, '000_Dependencies.R')
 source(path.dependencies)
 
+# Create filter to identify "character direction", which can pollute
+# a character's label
+# E.g., RIPLEY (angrily)
+filterCharacterDirection <- "\\([^()]*\\)|\\([^()]*|[^()]*\\)"
+
 ###############################################################################
 # IMPORT SELECTED SCREENPLAYS
 screenplayIndentationStatsSelection <- fread(
@@ -47,9 +52,33 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
   , on = .(movie, leftSpaceCount)
   , nomatch = FALSE
 ][
-  # Create character label field using characterInd 
-  characterIndentInd == 1
-  , character := stri_trim(stri_trans_totitle(string))
+  # Create indicator to better infer if an apparent character label is formatted
+  # correctly by ignoring those that only have character direction
+  , characterLabelLikelyInd := ifelse(
+      characterIndentInd == 1 & characterDirectionOnlyInd == 0,
+      1,
+      0
+  )
+][
+  # Create character label field using characterIndentInd
+  # Remove any apparent character direction to provide cleaner character
+  # labels
+  characterLabelLikelyInd == 1
+  , character := stringi::stri_replace_all_regex(
+        string,
+        filterCharacterDirection,
+        ''
+      ) %>%
+      stringi::stri_replace_all_regex(
+        .,
+        '\\|',
+        '/'
+      ) %>%
+      stringi::stri_trans_totitle(.) %>%
+      stringi::stri_trim(.)
+][
+  character == ''
+  , character := NA_character_
 ][
   # Rederive line number to denote the retained lines
   order(movie, lineNumber)
@@ -81,7 +110,11 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
   #
   # dialogueIndentInd is excluded to later group it with the associated 
   # character label that's assumed to precede dialogue.
-  , sectionInd := pmax(characterIndentInd, settingInd, descriptionSectionInd)
+  , sectionInd := pmax(
+      characterLabelLikelyInd,
+      settingInd,
+      descriptionSectionInd
+    )
 ][
   # Create section number and scene number to partition each screenplay
   order(movie, lineNumber)
@@ -96,10 +129,10 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
   , character := max(character, na.rm = TRUE)
   , by = .(movie, sectionNumber)
 ][
-  , stringTrimmed := stri_trim(string)
+  , stringTrimmed := stringi::stri_trim(string)
 ][
   # Concatenate lines for each section for easier text mining
-  characterIndentInd == 0
+  characterLabelLikelyInd == 0
   , lapply(.SD, paste0, collapse = ' ')
   , by = .(
       movie
@@ -142,14 +175,32 @@ setcolorder(
   c('movie', 'sectionNumber', 'sceneNumber', 'component', 'character', 'text')
 )
 
-# Remove 9 screenplays with unresolved issues
+# Remove 11 screenplays with unresolved issues:
+#    beginners
+#    blackswan
+#    colorofnight
+#    flight
+#    hitchcock
+#    idesofmarchthe
+#    jennifereight
+#    limitless
+#    mud
+#    wallstreetmoneyneversleeps
+#    warrior
 screenplaysToDrop <- screenplayTransformed[
   , .(
-    pctBadComponents = sum(ifelse(is.na(component), 1, 0)) / .N
+    pctBadComponents = sum(
+      ifelse(
+        is.na(component),
+        stri_count_words(text),
+        0
+      )
+    ) / sum(stri_count_words(text))
+    
   )
   , keyby = movie
 ][
-  pctBadComponents > 0.1
+  pctBadComponents > 0.10
   , movie
 ]
 
@@ -158,25 +209,28 @@ screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
 ###############################################################################
 # STATISICS ON TRANSFORMED SCREENPLAYS
 
-# Note: The current implementation only has < 1% of screenplay components that 
-# are not identified. These components had issues that prevented their 
-# inclusion.
+# Note: The current implementation only has ~0.5% of screenplay tokens that 
+# come from unidentified components. These components had issues that prevented
+# their inclusion.
 #
 # Code:
 # screenplayTransformed[
-#   , .(
-#     pctSections = .N / nrow(screenplayTransformed)
-#   )
-#   , keyby = component
+#   , {
+#     totalTokenCount = sum(stri_count_words(text))
+#     .SD[
+#       , .(pctTokens = sum(stri_count_words(text)) / totalTokenCount)
+#       , keyby = component
+#     ]
+#   }
 # ]
 #
 # Output:
 #
-#      component pctSections
-# 1:        <NA> 0.008622927
-# 2: description 0.320978184
-# 3:    dialogue 0.570731676
-# 4:     setting 0.099667214
+#      component   pctTokens
+# 1:        <NA> 0.005492789
+# 2: description 0.557861260
+# 3:    dialogue 0.406270144
+# 4:     setting 0.030375807
 
 ###############################################################################
 # EXPORT RESULTS
