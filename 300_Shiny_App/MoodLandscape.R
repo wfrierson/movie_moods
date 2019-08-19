@@ -9,7 +9,7 @@ moodLandscapeUi <- function(id, width, height) {
   ns <- shiny::NS(id)
   
   elements <- shiny::tagList(
-    htmlOutput(ns("search")),
+    htmlOutput(ns("searchUi")),
     shiny::plotOutput(
       ns("plot"),
       width,
@@ -61,11 +61,12 @@ moodLandscapeServer <- function(input,
                                 session,
                                 dataset,
                                 searchHighlightCol) {
+  ns = session$ns
   
   # Dynamically render the selectizeInput UI
-  output$search <- renderUI({ 
+  output$searchUi <- shiny::renderUI({ 
     selectizeInput(
-      "search",
+      ns("search"),
       "Search by Title",
       choices = c("Select up to 5" = "", dataset[[searchHighlightCol]]),
       multiple = TRUE,
