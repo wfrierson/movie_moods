@@ -47,6 +47,8 @@ screenplayPaths <- screenplayPaths[
   # Remove following movie because it has some bad text encodings (for ease)
   # Not worth fixing...
   filename != 'mightymorphinpowerrangersthemovie.txt'
+][
+  , movie := gsub('.txt', '', filename, fixed = TRUE)
 ]
 
 ###############################################################################
@@ -70,12 +72,9 @@ screenplays <- lapply(
       , blank.lines.skip = TRUE
     )
     
-    filename <- screenplayPaths[index]$filename
-    movie <- gsub('.txt', '', filename, fixed = TRUE)
-    
     list(
       'screenplay' = screenplay,
-      'movie' = movie
+      'movie' = screenplayPaths[index]$movie
     )
   }
 )
