@@ -1,3 +1,11 @@
+###############################################################################
+# This script produces the transformed versions of the selected screenplays. 
+# Text in each distinct screenplay component is concatenated together in order
+# to have a more structured form to facilitate sentiment analysis.
+
+###############################################################################
+# SETUP
+
 folder.data <- '100_Data'
 folder.data.raw <- file.path(folder.data, '110_Raw_Data')
 folder.data.processed <- file.path(folder.data, '120_Processed_Data')
@@ -6,23 +14,35 @@ folder.code <- '200_Code'
 path.dependencies <- file.path(folder.code, '000_Dependencies.R')
 source(path.dependencies)
 
+###############################################################################
+# IMPORT SELECTED SCREENPLAYS
 screenplayIndentationStatsSelection <- fread(
-  file.path(folder.data.processed, 'screenplayIndentationStatsSelection.csv')
+  file.path(
+    folder.data.processed,
+    '303_screenplayIndentationStatsSelection.csv'
+  )
   , stringsAsFactors = FALSE
 )
 
 screenplayStatsSelection <- readRDS(
-  file.path(folder.data.processed, 'screenplayStatsSelection.rds')
+  file.path(folder.data.processed, '304_screenplayStatsSelection.rds')
 )
+
+###############################################################################
+# TRANSFORM SCREENPLAYS
 
 # Retain indentations inferred as screenplay components
 screenplayTransformed <- screenplayIndentationStatsSelection[
+  # Only keep indentations that appear to have desired components for each
+  # screenplay
   dialogueIndentInd == 1 |
     characterIndentInd == 1 |
     descriptionIndentInd == 1 |
     settingIndentInd == 1 |
     characterDirectionIndentInd == 1
 ][
+  # Apply the selected indentations to each screenplay and remove unmatching
+  # indentations
   screenplayStatsSelection
   , on = .(movie, leftSpaceCount)
   , nomatch = FALSE
@@ -31,10 +51,14 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
   characterIndentInd == 1
   , character := stri_trim(stri_trans_totitle(string))
 ][
+  # Rederive line number to denote the retained lines
   order(movie, lineNumber)
   , lineNumber := 1:.N
   , by = movie
 ][
+  # The following two field derivations are used to ensure new setting 
+  # descriptions will be recognized as their own component, instead of being
+  # lumped in with generic scene descriptions
   , descriptionNoSettingIndentInd := ifelse(
       settingIndentInd == descriptionIndentInd &
         descriptionIndentInd == settingInd,
@@ -88,6 +112,7 @@ screenplayTransformed <- screenplayIndentationStatsSelection[
   )
   , .SDcols = 'stringTrimmed'
 ][
+  # Create field that labels each screenplay component
   , component := ifelse(
       # Case 1
       !is.na(character), 'dialogue', ifelse(
@@ -130,8 +155,12 @@ screenplaysToDrop <- screenplayTransformed[
 
 screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
 
-# Note: The current implementation only has ~1% of screenplay components that 
-# are not identified.
+###############################################################################
+# STATISICS ON TRANSFORMED SCREENPLAYS
+
+# Note: The current implementation only has < 1% of screenplay components that 
+# are not identified. These components had issues that prevented their 
+# inclusion.
 #
 # Code:
 # screenplayTransformed[
@@ -149,8 +178,11 @@ screenplayTransformed <- screenplayTransformed[!(movie %in% screenplaysToDrop)]
 # 3:    dialogue 0.570731676
 # 4:     setting 0.099667214
 
+###############################################################################
+# EXPORT RESULTS
+
 # Exporting as compressed file to avoid github's 100 MB per file limit.
 saveRDS(
   screenplayTransformed
-  , file.path(folder.data.processed, 'screenplayTransformed.rds')
+  , file.path(folder.data.processed, '401_screenplayTransformed.rds')
 )

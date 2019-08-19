@@ -110,7 +110,15 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     "\\(%s\\)"
   )
   filterVoiceOver <- CreateRegexFilter(
-    c('voice over', 'v\\.o\\.', 'vo', 'off screen', 'o\\.s\\.', 'os'),
+    c(
+      'voice over', 'off screen', 'off camera',
+      'vo', 'os', 'oc',
+      'v\\.o\\.', 'o\\.s\\.', 'o\\.c\\.',
+      'v\\. o\\.', 'o\\. s\\.', 'o\\. c\\.',
+      'v0', '0s', '0c',
+      'v\\.0\\.', '0\\.s\\.', '0\\.c\\.',
+      'v\\. 0\\.', '0\\. s\\.', '0\\. c\\.'
+    ),
     "\\(%s\\)"
   )
   
@@ -209,7 +217,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
           0
       )
       , tokenCountI = stringi::stri_count(
-                        stri_trans_tolower(string),
+                        stringi::stri_trans_tolower(string),
                         regex = filterI
                       )
       , tokenCountYou = stringi::stri_count(
@@ -244,7 +252,10 @@ GetMovieTranscriptStats <- function(rawTranscript) {
         !nzchar(string)
         , 0
         , ifelse(
-            stringi::stri_detect_regex(stri_trim(string), filterSetting)
+            stringi::stri_detect_regex(
+              stringi::stri_trim(string),
+              filterSetting
+            )
             , 1
             , 0
         )
@@ -262,7 +273,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     tokenCountOddPunctuation == 0
     , .N
     , by = .(
-      string = stringi::stri_trim(string) %>% stringi::stri_trans_tolower
+      string = stringi::stri_trim(string) %>% stringi::stri_trans_tolower(.)
     )
   ][order(-N)][N > 10, string] %>% paste0(collapse = '|')
   
@@ -273,7 +284,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   } else {
     rawTranscript[
       , tokenCountCharacterMention := stringi::stri_count(
-          stringi::stri_trim(string) %>% stringi::stri_trans_tolower,
+          stringi::stri_trim(string) %>% stringi::stri_trans_tolower(.),
           regex = freqCharacters
       )
     ]
