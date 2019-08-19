@@ -57,7 +57,8 @@ moodStarServer <- function(input, output, session, dataset) {
             range = c(0,50)
           )
         )
-      )
+      ) %>%
+      plotly::config(displayModeBar = FALSE)
 
     return(p)
   })
