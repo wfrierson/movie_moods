@@ -1,5 +1,6 @@
 library(data.table)
 library(ggplot2)
+library(plotly)
 library(stringi)
 library(quanteda)
 library(quanteda.dictionaries)
