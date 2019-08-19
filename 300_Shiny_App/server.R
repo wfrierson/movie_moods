@@ -6,13 +6,15 @@ shinyServer(function(input, output) {
   movieMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "movieMoodLandscape",
-    dataset
+    dataset,
+    searchHighlightCol = "Movie"
   )
 
   # And for characters. TODO: bring in real datasets and enable cross filtering
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
-    movieMoodLandscape$brushedPoints
+    dataset,
+    searchHighlightCol = "Movie"
   )
 })

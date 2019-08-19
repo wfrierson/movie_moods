@@ -15,13 +15,6 @@ shinyUI(
     sidebarLayout(
 
       sidebarPanel(
-        selectizeInput(
-          "search",
-          "Search by Title",
-          choices = c("Select up to 5" = "", dataset$Movie),
-          multiple = TRUE,
-          options = list(maxItems = 5)
-        ),
         selectInput("filter1", "Filter 1", c("Choice")),
         sliderInput(
           "filter2",
@@ -51,7 +44,7 @@ shinyUI(
           box(
             title = "Movies",
             width = 6,
-            height = 300,
+            height = 400,
             moodLandscapeUi(
               "movieMoodLandscape",
               width = "100%",
@@ -61,7 +54,7 @@ shinyUI(
           box(
             title = "Mood star for selected movies",
             width = 6,
-            height = 300
+            height = 400
           )
         ),
         hr(),
@@ -69,7 +62,7 @@ shinyUI(
           box(
             title = "Characters",
             width = 6,
-            height = 300,
+            height = 400,
             moodLandscapeUi(
               "charactersMoodLandscape",
               width = "100%",

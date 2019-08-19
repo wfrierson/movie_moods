@@ -9,6 +9,7 @@ moodLandscapeUi <- function(id, width, height) {
   ns <- shiny::NS(id)
   
   elements <- shiny::tagList(
+    htmlOutput(ns("search")),
     shiny::plotOutput(
       ns("plot"),
       width,
@@ -38,19 +39,41 @@ moodLandscapeIxDebugUi <- function(id) {
       shiny::column(width = 6, shiny::verbatimTextOutput(ns("hover_info"))),
       shiny::column(width = 6, shiny::verbatimTextOutput(ns("click_info")))
     ),
-    shiny::verbatimTextOutput(ns("brush_info"))
+    shiny::fluidRow(
+      shiny::column(width = 6, shiny::verbatimTextOutput(ns("brush_info"))),
+      shiny::column(width = 6, shiny::verbatimTextOutput(ns("search_info")))
+      
+    )
   )
   
   return(elements)
 }
 
 
-
 #' Mood Landscape plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
 #' @param dataset data frame (non-reactive) with variables \code{x} and \code {y}
-moodLandscapeServer <- function(input, output, session, dataset) {
+#' @param searchHighlightCol (non-reactive) variable for the name of column to
+#' use when filtering for highlight in the visual
+moodLandscapeServer <- function(input,
+                                output,
+                                session,
+                                dataset,
+                                searchHighlightCol) {
+  
+  # Dynamically render the selectizeInput UI
+  output$search <- renderUI({ 
+    selectizeInput(
+      "search",
+      "Search by Title",
+      choices = c("Select up to 5" = "", dataset[[searchHighlightCol]]),
+      multiple = TRUE,
+      options = list(maxItems = 5)
+    )
+  })
+  
+  # Render the plot UI
   plot_obj <- shiny::reactive({
     p <- ggplot2::ggplot(dataset, aes(x, y)) +
       ggplot2::geom_point() +
@@ -81,6 +104,11 @@ moodLandscapeServer <- function(input, output, session, dataset) {
   output$brush_info <- shiny::renderPrint({
     cat("Brush:\n")
     str(input$plot_brush)
+  })
+  # Show debug output for search filter
+  output$search_info <- shiny::renderPrint({
+    cat("Search:\n")
+    str(input$search)
   })
 
   # Return reactiveValues for downstream use
