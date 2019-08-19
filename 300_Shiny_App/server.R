@@ -25,4 +25,11 @@ shinyServer(function(input, output) {
     "charactersMoodLandscape",
     movieMoodLandscape$brushedPoints
   )
+  
+  # Start the server for the movies mood star module
+  shiny::callModule(
+    moodStarServer,
+    "movieMoodStar",
+    NA
+  )
 })
