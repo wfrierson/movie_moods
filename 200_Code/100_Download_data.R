@@ -39,39 +39,38 @@ unlink(file.path(folder.data.raw, '__MACOSX'), recursive = TRUE)
 ###############################################################################
 # DEPECHEMOOD++
 #
-# The following section downloads the DepecheMood++ emotinal lexicon and 
-# prepares it for use in sentiment analysis.
+# The following section downloads the DepecheMood++ emotional lexicon.
 #
 # Araque, O., Gatti, L., Staiano, J., and Guerini, M. (2018) 
 # "DepecheMood++: a Bilingual Emotion Lexicon Built Through Simple Yet Powerful 
 # Techniques". ArXiv preprint is available at https://arxiv.org/abs/1810.03660
 
-name.depechemood <- 'DepecheMood_v2.0.zip'
-path.depechemood <- file.path(folder.data.raw, name.depechemood)
-file.depechemood <- file.path(
+name.DMpp <- 'DepecheMood_v2.0.zip'
+path.DMpp <- file.path(folder.data.raw, name.DMpp)
+file.DMpp <- file.path(
   'DepecheMood++',
   'DepecheMood_english_lemmapos_full.tsv'
 )
 
 
-if (!file.exists(path.depechemood)) {
-  url.depechemood <- file.path(
+if (!file.exists(path.DMpp)) {
+  url.DMpp <- file.path(
     'https://github.com/marcoguerini/DepecheMood/releases/download/v2.0'
-    , name.depechemood
+    , name.DMpp
   )
-  download.file(url.depechemood, path.depechemood)
+  download.file(url.DMpp, path.DMpp)
 }
 
 # Extract the relevant emotion lexicon
 unzip(
-  path.depechemood,
-  files = file.depechemood,
+  path.DMpp,
+  files = file.DMpp,
   overwrite = FALSE,
   exdir = folder.data.raw
 )
 
 # Remove the zip file
-file.remove(path.depechemood)
+file.remove(path.DMpp)
 
 ###############################################################################
 # IMDB DATA
