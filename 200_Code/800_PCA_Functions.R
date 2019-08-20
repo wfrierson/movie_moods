@@ -46,12 +46,12 @@ AppendGenres <- function(
   movieTableFieldsString = c('movie')
 ) {
   # Get vector of movie genres for reference
-  genres <- colnames(genreLookupTable)[-c(1:2, 25)] %>% copy
+  genres <- colnames(genreLookupTable) %>% copy %>% tail(., 22)
   
   output <- genreLookupTable[
       movieTable
       , on = .(movie)
-    ][, mget(c(movieTableFieldsString, genres))]
+    ][, mget(c(movieTableFieldsString, 'genreList', genres))]
   
   return(output)
 }
@@ -65,7 +65,7 @@ AppendGenres <- function(
 RotateMoodAggregation <- function(moodAggTable) {
   moodAggTable <- get(moodAggTable)
   
-  moodAggTableRot <- rotateData(
+  moodAggTableRot <- RotateData(
     newData = moodAggTable[, mget(moods.DMpp)],
     prcompOutput = pcaMovie
   )
@@ -77,13 +77,15 @@ RotateMoodAggregation <- function(moodAggTable) {
     'sectionCount'
   )
   moodAggTableRot <- cbind(
-    appendGenres(
+    AppendGenres(
       movieTable = moodAggTable,
       genreLookupTable = screenplayPaths,
       movieTableFieldsString = fieldsToInclude
     ),
     moodAggTableRot
   )
+  
+  genres <- colnames(screenplayPaths) %>% copy %>% tail(., 22)
   
   moodAggTableRot[
     , genreCount := Reduce(`+`, .SD)
