@@ -59,7 +59,8 @@ moodLandscapeServer <- function(input,
                                 dataset,
                                 xCol,
                                 yCol,
-                                searchHighlightCol) {
+                                searchHighlightCol,
+                                text) {
   ns = session$ns
   
   # Dynamically render the selectizeInput UI
@@ -84,14 +85,9 @@ moodLandscapeServer <- function(input,
       data = dataset,
       x = ~get(xCol),
       y = ~get(yCol),
-      type = 'scatter',
-      mode = 'markers',
-      text = ~paste(
-        "<b>", get(searchHighlightCol), "</b>",
-        "<br>Word Count: ", tokenCount,
-        "<br>Character Count: ", characterCount,
-        "<br>Genres: ", genreList
-      )
+      type = "scatter",
+      mode = "markers",
+      text = text
     ) %>%
       plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
       plotly::config(displayModeBar = FALSE)

@@ -45,7 +45,13 @@ shinyServer(function(input, output) {
     screenplayMoodProb.movieRotated,
     xCol = "PC1",
     yCol = "PC2",
-    searchHighlightCol = "movie"
+    searchHighlightCol = "movie",
+    text = ~paste(
+      "<b>", movie, "</b>",
+      "<br>Word Count: ", tokenCount,
+      "<br>Character Count: ", characterCount,
+      "<br>Genres: ", genreList
+    )
   )
 
   # And for characters. TODO: bring in real datasets and enable cross filtering
@@ -55,7 +61,12 @@ shinyServer(function(input, output) {
     dataset,
     xCol = "x",
     yCol = "y",
-    searchHighlightCol = "Movie"
+    searchHighlightCol = "Movie",
+    text = ~paste(
+      'Character: ', x,
+      '</br>Movie: ', x,
+      '</br>Word Count: ', x
+    )
   )
   
   # Start the server for the movies mood star module
