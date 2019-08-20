@@ -20,14 +20,14 @@
 #' @export
 #'
 #' @examples
-getTokenMoodContribution <- function(termProb, termFreq) {
+GetTokenMoodContribution <- function(termProb, termFreq) {
   output <- termProb * log(1 + termFreq)
   return(output)
 }
 
 #' Aggregate moods to a given level
 #' 
-#' Aggreating moods using the functon \code{getTokenMoodContribution}.
+#' Aggregating moods using the functon \code{GetTokenMoodContribution}.
 #'
 #' @param moodTable dat.table containing granular token info 
 #' @param aggregateString character vector of fields to aggregate by
@@ -36,7 +36,7 @@ getTokenMoodContribution <- function(termProb, termFreq) {
 #' @export
 #'
 #' @examples
-aggregateMoods <- function(
+AggregateMoods <- function(
   moodTable,
   aggregateString = c('movie')
 ) {
@@ -62,7 +62,7 @@ aggregateMoods <- function(
     # getTokenMoodContribution function
     , (moods.DMpp) := lapply(
         .SD,
-        function(mood) sum(getTokenMoodContribution(mood, tokenFreq))
+        function(mood) sum(GetTokenMoodContribution(mood, tokenFreq))
       )
     , by = aggregateString
     , .SDcols = moodLevels
