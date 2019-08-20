@@ -1,3 +1,5 @@
+library(tidyverse)
+
 # Prepare a dummy dataset
 dataset <- mtcars %>%
   tibble::rownames_to_column() %>%
