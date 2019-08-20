@@ -74,6 +74,11 @@ moodLandscapeServer <- function(input,
   })
   
   # Render the plot UI
+  cleanAxis <- list(
+    title = NA,
+    showticklabels = FALSE
+  )
+
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
       data = dataset,
@@ -82,20 +87,19 @@ moodLandscapeServer <- function(input,
       type = 'scatter',
       mode = 'markers',
       text = ~paste(
-        'Movie: ', movie,
-        '</br>Word Count: ', tokenCount,
-        '</br>Character Count: ', characterCount,
-        '</br>Genres: ', genreList
+        "<b>", get(searchHighlightCol), "</b>",
+        "<br>Word Count: ", tokenCount,
+        "<br>Character Count: ", characterCount,
+        "<br>Genres: ", genreList
       )
     ) %>%
+      plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
       plotly::config(displayModeBar = FALSE)
 
     return(p)
   })
 
   output$plot <- plotly::renderPlotly({plot_obj()})
-  
-  
   
   # Show debug outputs
   output$hover_info <- shiny::renderPrint({
@@ -119,7 +123,7 @@ moodLandscapeServer <- function(input,
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
   observe({
-    vals$brushedPoints <- shiny::brushedPoints(dataset, input$plot_brush)
+    
   })
 
   return(vals)

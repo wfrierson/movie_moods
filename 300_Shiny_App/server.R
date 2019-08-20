@@ -53,8 +53,8 @@ shinyServer(function(input, output) {
     moodLandscapeServer,
     "charactersMoodLandscape",
     dataset,
-    xCol = "PC1",
-    yCol = "PC2",
+    xCol = "x",
+    yCol = "y",
     searchHighlightCol = "Movie"
   )
   
