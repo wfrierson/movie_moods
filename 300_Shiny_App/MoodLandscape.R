@@ -10,13 +10,10 @@ moodLandscapeUi <- function(id, width, height) {
   
   elements <- shiny::tagList(
     htmlOutput(ns("searchUi")),
-    shiny::plotOutput(
+    plotly::plotlyOutput(
       ns("plot"),
       width,
-      height,
-      hover = ns("plot_hover"),
-      click = ns("plot_click"),
-      brush = ns("plot_brush")
+      height
     )
   )
   
@@ -78,20 +75,25 @@ moodLandscapeServer <- function(input,
   
   # Render the plot UI
   plot_obj <- shiny::reactive({
-    p <- ggplot2::ggplot(dataset, aes(dataset[[xCol]], dataset[[yCol]])) +
-      ggplot2::geom_point() +
-      ggplot2::geom_vline(xintercept = 0) +
-      ggplot2::geom_hline(yintercept = 0) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(
-        axis.ticks = ggplot2::element_blank(),
-        axis.title = ggplot2::element_blank(),
-        axis.text = ggplot2::element_blank(),
-        legend.position = "none")
+    p <- plotly::plot_ly(
+      data = dataset,
+      x = ~get(xCol),
+      y = ~get(yCol),
+      type = 'scatter',
+      mode = 'markers',
+      text = ~paste(
+        'Movie: ', movie,
+        '</br>Word Count: ', tokenCount,
+        '</br>Character Count: ', characterCount,
+        '</br>Genres: ', genreList
+      )
+    ) %>%
+      plotly::config(displayModeBar = FALSE)
+
     return(p)
   })
 
-  output$plot <- shiny::renderPlot({plot_obj()})
+  output$plot <- plotly::renderPlotly({plot_obj()})
   
   
   

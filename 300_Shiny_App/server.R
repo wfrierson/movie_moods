@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(data.table)
+library(plotly)
 
 moodStarDummyData <- data.frame(
   row.names = c("Aliens", "Reservior Dogs", "Up"),
@@ -52,6 +53,8 @@ shinyServer(function(input, output) {
     moodLandscapeServer,
     "charactersMoodLandscape",
     dataset,
+    xCol = "PC1",
+    yCol = "PC2",
     searchHighlightCol = "Movie"
   )
   
