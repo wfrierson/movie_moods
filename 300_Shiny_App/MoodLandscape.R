@@ -60,6 +60,8 @@ moodLandscapeServer <- function(input,
                                 output,
                                 session,
                                 dataset,
+                                xCol,
+                                yCol,
                                 searchHighlightCol) {
   ns = session$ns
   
@@ -76,7 +78,7 @@ moodLandscapeServer <- function(input,
   
   # Render the plot UI
   plot_obj <- shiny::reactive({
-    p <- ggplot2::ggplot(dataset, aes(x, y)) +
+    p <- ggplot2::ggplot(dataset, aes(dataset[[xCol]], dataset[[yCol]])) +
       ggplot2::geom_point() +
       ggplot2::geom_vline(xintercept = 0) +
       ggplot2::geom_hline(yintercept = 0) +

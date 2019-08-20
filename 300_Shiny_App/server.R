@@ -1,5 +1,6 @@
 library(shiny)
 library(tidyverse)
+library(data.table)
 
 moodStarDummyData <- data.frame(
   row.names = c("Aliens", "Reservior Dogs", "Up"),
@@ -13,13 +14,37 @@ moodStarDummyData <- data.frame(
   disgust = c(33, 22, 10)
 )
 
+# Load processed screenplays data
+folder.data <- "../100_Data"
+folder.data.processed <- file.path(folder.data, "120_Processed_Data")
+
+screenplayMoodProb.movieRotated <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "901_screenplayMoodProb.movieRotated.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
+screenplayMoodProb.characterRotated <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "902_screenplayMoodProb.characterRotated.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
 shinyServer(function(input, output) {
   # Start the server for the movieMoodLandscape module
   movieMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "movieMoodLandscape",
-    dataset,
-    searchHighlightCol = "Movie"
+    screenplayMoodProb.movieRotated,
+    xCol = "PC1",
+    yCol = "PC2",
+    searchHighlightCol = "movie"
   )
 
   # And for characters. TODO: bring in real datasets and enable cross filtering
