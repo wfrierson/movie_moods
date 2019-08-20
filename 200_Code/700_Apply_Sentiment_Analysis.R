@@ -11,12 +11,12 @@ folder.data.raw <- file.path(folder.data, '110_Raw_Data')
 folder.code <- '200_Code'
 
 path.dependencies <- file.path(folder.code, '000_Dependencies.R')
-path.screenplayFunctions <- file.path(
+path.sentimentFunctions <- file.path(
   folder.code,
   '600_Sentiment_Aggregation_Functions.R'
 )
 source(path.dependencies)
-source(path.screenplayFunctions)
+source(path.sentimentFunctions)
 
 ###############################################################################
 # IMPORT DATA
@@ -52,7 +52,7 @@ dictionary.DMpp <- data.table::fread(
   , col.names = fields.DMpp
 )
 
-# Use Bayes' rule to calculate probability of getting word given each mood
+# Calculate overall tokenPOS probability
 dictionary.DMpp[
   , prob := freq / dictionary.DMpp[, sum(freq)]
 ]
@@ -66,7 +66,8 @@ moodProb.DMpp <- dictionary.DMpp[
   , .SDcols = moods.DMpp
 ]
 
-# Append token part-of-speech to tokenPOS-mood probabilities
+# Use Bayes' rule to calculate probability of getting word given each mood
+# and append token part-of-speech to tokenPOS-mood probabilities
 dictionary.DMpp <- cbind(
   dictionary.DMpp[, .(tokenPOS)],
   dictionary.DMpp[
@@ -75,6 +76,7 @@ dictionary.DMpp <- cbind(
       )
   ]
 )
+
 ###############################################################################
 # APPEND MOODS FROM DEPECHEMOOD++
 
@@ -115,7 +117,7 @@ rm(screenplayMoodProb.lemmaMatch)
 #
 # nrow(screenplayMoodProb) / nrow(screenplayTagged[!is.na(tokenPOS)])
 #
-# 0.8879722
+# 0.8876894
 
 ###############################################################################
 # AGGREGATE MOODS AT DIFFERENT LEVELS
@@ -131,75 +133,86 @@ screenplayMoodProb <- screenplayTransformed[
 ]
 
 # Aggregate to movie-level to compare mood probabilities
-screenplayMoodProb.movie <- aggregateMoods(
+screenplayMoodProb.movie <- AggregateMoods(
   moodTable = screenplayMoodProb,
   aggregateString = 'movie'
 )
 
 # Aggregate to character-level to compare mood probabilities
-screenplayMoodProb.character <- aggregateMoods(
+screenplayMoodProb.character <- AggregateMoods(
   moodTable = screenplayMoodProb,
   aggregateString = c('movie', 'character')
 )[!is.na(character)]
 
 # Aggregate to scene-level to compare mood probabilities
-screenplayMoodProb.scene <- aggregateMoods(
+screenplayMoodProb.scene <- AggregateMoods(
   moodTable = screenplayMoodProb,
   aggregateString = c('movie', 'sceneNumber')
 )
 
 # Aggregate to scene & character level to compare mood probabilities
-screenplayMoodProb.sceneCharacter <- aggregateMoods(
+screenplayMoodProb.sceneCharacter <- AggregateMoods(
   moodTable = screenplayMoodProb,
   aggregateString = c('movie', 'sceneNumber', 'character')
-)
+)[
+  # Give better labeling for rows representing scene descriptions with no
+  # dialogue
+  is.na(character) & characterCount == 0
+  , character := '(Scene Description)'
+]
 
 ###############################################################################
 # EXPORT RESULTS
 
 data.table::fwrite(
   dictionary.DMpp,
-  file = file.path(folder.data.processed, '601_dictionary.DMpp.csv'),
+  file = file.path(folder.data.processed, '701_dictionary.DMpp.csv'),
   row.names = FALSE,
   quote = FALSE
 )
 
-
+data.table::setorder(screenplayMoodProb.movie, movie)
 data.table::fwrite(
   screenplayMoodProb.movie,
-  file = file.path(folder.data.processed, '602_screenplayMoodProb.movie.csv'),
+  file = file.path(folder.data.processed, '702_screenplayMoodProb.movie.csv'),
   row.names = FALSE,
   quote = FALSE,
   sep = '|'
 )
 
+data.table::setorder(screenplayMoodProb.character, movie, -tokenCount)
 data.table::fwrite(
   screenplayMoodProb.character,
   file = file.path(
             folder.data.processed,
-            '603_screenplayMoodProb.character.csv'
+            '703_screenplayMoodProb.character.csv'
          ),
   row.names = FALSE,
   quote = FALSE,
   sep = '|'
 )
 
+data.table::setorder(screenplayMoodProb.scene, movie, sceneNumber)
 data.table::fwrite(
   screenplayMoodProb.scene,
   file = file.path(
             folder.data.processed,
-            '604_screenplayMoodProb.scene.csv'
+            '704_screenplayMoodProb.scene.csv'
          ),
   row.names = FALSE,
   quote = FALSE,
   sep = '|'
 )
 
+data.table::setorder(
+  screenplayMoodProb.sceneCharacter,
+  movie, sceneNumber, -tokenCount
+)
 data.table::fwrite(
   screenplayMoodProb.sceneCharacter,
   file = file.path(
             folder.data.processed,
-            '605_screenplayMoodProb.sceneCharacter.csv'
+            '705_screenplayMoodProb.sceneCharacter.csv'
          ),
   row.names = FALSE,
   quote = FALSE,

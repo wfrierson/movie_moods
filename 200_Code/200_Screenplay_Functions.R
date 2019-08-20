@@ -85,6 +85,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   # a character's label
   # E.g., RIPLEY (angrily)
   filterCharacterDirection <- "\\([^()]*\\)|\\([^()]*|[^()]*\\)"
+  filterOnlyCharacterDirection <- "^\\([^()]*\\)$|^\\([^()]*$|^[^()]*\\)$"
   
   # Create regex filters to identify setting descriptions
   # E.g., "EXT. TIMES SQUARE"
@@ -113,13 +114,15 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     c(
       'voice over', 'off screen', 'off camera',
       'vo', 'os', 'oc',
+      'v/o', 'o/s', 'o/c',
       'v\\.o\\.', 'o\\.s\\.', 'o\\.c\\.',
       'v\\. o\\.', 'o\\. s\\.', 'o\\. c\\.',
       'v0', '0s', '0c',
       'v\\.0\\.', '0\\.s\\.', '0\\.c\\.',
-      'v\\. 0\\.', '0\\. s\\.', '0\\. c\\.'
+      'v\\. 0\\.', '0\\. s\\.', '0\\. c\\.',
+      'on the phone', 'on the tv', 'on tv', 'on phone'
     ),
-    "\\(%s\\)"
+    "\\([ #,/[:alnum:]]*%s[ #,/[:alnum:]]*\\)"
   )
   
   # Create regex filter to remove html bold tags
@@ -216,6 +219,12 @@ GetMovieTranscriptStats <- function(rawTranscript) {
           1,
           0
       )
+      , characterDirectionOnlyInd = ifelse(
+          stringi::stri_trim(string) %>%
+            stringi::stri_detect_regex(., filterOnlyCharacterDirection),
+          1,
+          0
+      )
       , tokenCountI = stringi::stri_count(
                         stringi::stri_trans_tolower(string),
                         regex = filterI
@@ -251,7 +260,7 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     , settingInd := ifelse(
         !nzchar(string)
         , 0
-        , ifelse(
+        , ifelse( 
             stringi::stri_detect_regex(
               stringi::stri_trim(string),
               filterSetting
@@ -273,9 +282,15 @@ GetMovieTranscriptStats <- function(rawTranscript) {
     tokenCountOddPunctuation == 0
     , .N
     , by = .(
-      string = stringi::stri_trim(string) %>% stringi::stri_trans_tolower(.)
+      string = stringi::stri_replace_all_regex(
+        string,
+        filterCharacterDirection,
+        ''
+      ) %>% 
+        stringi::stri_trim(.) %>% 
+        stringi::stri_trans_tolower(.)
     )
-  ][order(-N)][N > 10, string] %>% paste0(collapse = '|')
+  ][order(-N)][N > 10 & string != '', string] %>% paste0(collapse = '|')
   
   # Use inferred character names to count number of mentions for any frequent
   # character

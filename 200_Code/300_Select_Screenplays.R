@@ -51,6 +51,29 @@ screenplayPaths <- screenplayPaths[
   , movie := gsub('.txt', '', filename, fixed = TRUE)
 ]
 
+# Get vector of genre labels
+genres <- colnames(screenplayPaths)[-c(1:2, 25)] %>% copy
+
+# Create lookup table that gives cleaner list of genres per movie
+screenplayGenres <- melt(
+  screenplayPaths
+  , id.vars = c('movie', 'filename')
+  , measure.vars = genres
+  , variable.name = 'genre'
+  , value.name = 'genre_indicator'
+  , variable.factor = FALSE
+)[
+  genre_indicator == 1
+][
+  , .(
+    genreList = paste0(genre, collapse = ', ')
+  )
+  , keyby = movie
+]
+
+# Append simpler genre list to screenplayPaths
+screenplayPaths <- screenplayGenres[screenplayPaths, on = 'movie']
+
 ###############################################################################
 # IMPORT SCREENPLAYS
 
@@ -397,6 +420,7 @@ data.table::fwrite(
   , file.path(folder.data.processed, '301_screenplayPaths.csv')
   , quote = FALSE
   , row.names = FALSE
+  , sep = '|'
 )
 
 data.table::fwrite(

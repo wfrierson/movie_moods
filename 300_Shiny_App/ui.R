@@ -3,6 +3,7 @@ library(shinydashboard)
 library(shinythemes)
 library(shinyWidgets)
 source("MoodLandscape.R")
+source("Mood_Star.R")
 
 shinyUI(
   fluidPage(
@@ -29,13 +30,6 @@ shinyUI(
           min = 1,
           max = 50,
           value = 30
-        ),
-        sliderInput(
-          "filter4",
-          "Filter 4",
-          min = 1,
-          max = 50,
-          value = 30
         )
       ),
 
@@ -54,7 +48,12 @@ shinyUI(
           box(
             title = "Mood star for selected movies",
             width = 6,
-            height = 400
+            height = 400,
+            moodStarUi(
+              "movieMoodStar",
+              width = "100%",
+              height = "240"
+            )
           )
         ),
         hr(),
