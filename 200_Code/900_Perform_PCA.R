@@ -21,7 +21,8 @@ source(path.pcaFunctions)
 screenplayPaths <- data.table::fread(
   file.path(folder.data.processed, '301_screenplayPaths.csv'),
   stringsAsFactors = FALSE,
-  quote = ""
+  quote = "",
+  sep = '|'
 )
 
 screenplayMoodProb.movie <- data.table::fread(
@@ -73,16 +74,13 @@ pcaMovie <- prcomp(
   retx = TRUE
 )
 
-# Get vector of genre labels to append to each movie
-genres <- colnames(screenplayPaths)[-c(1:2, 25)] %>% copy
-
 # Rotate each mood aggregation table for visualizing downstream
 screenplayMoodProb.aggregationsRot <- lapply(
   c(
     'screenplayMoodProb.movie', 'screenplayMoodProb.character', 
     'screenplayMoodProb.scene','screenplayMoodProb.sceneCharacter'
   ),
-  rotateMoodAggregation
+  RotateMoodAggregation
 )
 
 ###############################################################################
