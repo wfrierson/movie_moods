@@ -24,32 +24,18 @@ moodStarUi <- function(id, width, height) {
 #' Mood Star plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
-#' @param dataset a list of numeric values with names for each mood
+#' @param dataset a data-frame of values with row names as movie titles and
+#' column names for moods
 moodStarServer <- function(input, output, session, dataset) {
+  moodLabels <- names(dataset)
+  movies <- rownames(dataset)
+  
   plot_obj <- shiny::reactive({
-    labs <- c("anger", "fear", "anticipation", "trust", "surprise", "sadness", "joy", "disgust")
     p <- plotly::plot_ly(
+      dataset,
       type = "scatterpolar",
       fill = "toself"
     ) %>%
-      plotly::add_trace(
-        r = c(39, 28, 8, 7, 28, 39, 10, 33),
-        theta = labs,
-        name = "Aliens",
-        showlegend = FALSE
-      ) %>%
-      plotly::add_trace(
-        r = c(1.5, 10, 39, 31, 15, 1.5, 5, 22),
-        theta = labs,
-        name = "Reservior Dogs",
-        showlegend = FALSE
-      ) %>%
-      plotly::add_trace(
-        r = c(5, 6, 20, 4, 30, 3, 10, 10),
-        theta = labs,
-        name = "Up",
-        showlegend = FALSE
-      ) %>%
       plotly::layout(
         polar = list(
           radialaxis = list(
@@ -59,6 +45,16 @@ moodStarServer <- function(input, output, session, dataset) {
         )
       ) %>%
       plotly::config(displayModeBar = FALSE)
+    
+    for (movie in movies) {
+      p <- plotly::add_trace(
+        p,
+        r = array(dataset[movie,]),
+        theta = moodLabels,
+        name = movie,
+        showlegend = FALSE
+      )
+    }
 
     return(p)
   })
