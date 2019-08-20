@@ -81,6 +81,10 @@ file.remove(path.DMpp)
 
 folder.data.imdb <- file.path(folder.data, 'imdb')
 
+if (!dir.exists(folder.data.imdb)) {
+  dir.create(folder.data.imdb)
+}
+
 url.imdb <- 'https://datasets.imdbws.com/'
 
 name.imdb.basics <- 'title.basics.tsv.gz'
