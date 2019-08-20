@@ -5,6 +5,17 @@ library(shinyWidgets)
 source("MoodLandscape.R")
 source("Mood_Star.R")
 
+# Load all genres from file
+folder.data <- '../100_Data'
+folder.data.processed <- file.path(folder.data, '120_Processed_Data')
+screenplayPaths <- data.table::fread(
+  file.path(folder.data.processed, '301_screenplayPaths.csv'),
+  stringsAsFactors = FALSE,
+  quote = "",
+  sep = '|'
+)
+genres <- tail(colnames(screenplayPaths), 22)
+
 shinyUI(
   fluidPage(
     theme = shinythemes::shinytheme('darkly'),
@@ -16,7 +27,7 @@ shinyUI(
     sidebarLayout(
         
       sidebarPanel(
-        selectInput('filter1', 'Filter 1', c('Choice')),
+        selectInput('genreFilter', 'Genre', genres),
         sliderInput(
           'filter2',
           'Filter 2',
