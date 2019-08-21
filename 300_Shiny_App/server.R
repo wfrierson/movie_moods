@@ -126,7 +126,6 @@ shinyServer(function(input, output) {
     SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
   })
   
-  #as.data.frame(screenplayMoodProb.movieRotated)
   # Start the server for the movies mood star module
   shiny::callModule(
     moodStarServer,
