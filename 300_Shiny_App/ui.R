@@ -27,7 +27,13 @@ shinyUI(
     sidebarLayout(
 
       sidebarPanel(
-        selectInput('genreFilter', 'Genre', genres),
+        selectizeInput(
+          "genreFilter",
+          "Genre",
+          c("Choose up to 5" = "", genres),
+          multiple = TRUE,
+          options = list(maxItems = 5)
+        ),
         sliderInput(
           "filter2",
           "Filter 2",
