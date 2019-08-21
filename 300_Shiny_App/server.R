@@ -37,12 +37,40 @@ screenplayMoodProb.characterRotated <- data.table::fread(
   quote = ""
 )
 
+FilterMovies <- function(df, genres, numCharacters) {
+  filtered <- df
+
+  if (length(genres) > 0) {
+    filtered <-  dplyr::filter_at(
+      filtered,
+      vars(genres),
+      dplyr::any_vars(. == 1)
+    )
+  }
+  
+  
+  filtered <-  dplyr::filter(
+    filtered,
+    characterCount >= numCharacters[1] & characterCount <= numCharacters[2]
+  )
+
+  return(filtered)
+}
+
 shinyServer(function(input, output) {
+  # First, filter the movies dataset according to the filter panel
+  filteredMovies <- shiny::reactive({
+    FilterMovies(
+      screenplayMoodProb.movieRotated,
+      input$genreFilter,
+      input$numCharactersFilter)
+  })
+  
   # Start the server for the movieMoodLandscape module
   movieMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "movieMoodLandscape",
-    screenplayMoodProb.movieRotated,
+    filteredMovies,
     xCol = "PC1",
     yCol = "PC2",
     searchHighlightCol = "movie",
@@ -58,7 +86,7 @@ shinyServer(function(input, output) {
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
-    dataset,
+    reactive(dataset),
     xCol = "x",
     yCol = "y",
     searchHighlightCol = "Movie",
