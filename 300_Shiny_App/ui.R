@@ -27,6 +27,7 @@ shinyUI(
     sidebarLayout(
 
       sidebarPanel(
+        width = 2,
         selectizeInput(
           "genreFilter",
           "Genre",
@@ -48,21 +49,22 @@ shinyUI(
           box(
             title = "Movies",
             width = 6,
-            height = 400,
+            height = 450,
+            align = "left",
             moodLandscapeUi(
               "movieMoodLandscape",
               width = "100%",
-              height = "240"
+              height = "320"
             )
           ),
           box(
             title = "Mood star for selected movies",
             width = 6,
-            height = 400,
+            height = 450,
             moodStarUi(
               "movieMoodStar",
               width = "100%",
-              height = "240"
+              height = "320"
             )
           )
         ),
@@ -75,20 +77,20 @@ shinyUI(
             moodLandscapeUi(
               "charactersMoodLandscape",
               width = "100%",
-              height = "240"
+              height = "320"
             )
           ),
           box(
             title = "Mood star for selected characters",
             width = 6,
-            height = 300
+            height = 320
           )
         ),
         fluidRow(
           box(
             title = "Character mood progression",
             width = 12,
-            height = 300
+            height = 320
           )
         ),
         hr(),
