@@ -63,10 +63,15 @@ AppendGenres <- function(
 #'
 #' @examples
 RotateMoodAggregation <- function(moodAggTable) {
+  moodLevels = c(
+    'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
+    'trust'
+  )
+  
   moodAggTable <- get(moodAggTable)
   
   moodAggTableRot <- RotateData(
-    newData = moodAggTable[, mget(moods.DMpp)],
+    newData = moodAggTable[, mget(moodLevels)],
     prcompOutput = pcaMovie
   )
   
