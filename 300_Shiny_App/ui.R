@@ -35,11 +35,11 @@ shinyUI(
           options = list(maxItems = 5)
         ),
         sliderInput(
-          "filter2",
-          "Filter 2",
+          "numCharactersFilter",
+          "Number of Characters",
           min = 1,
-          max = 50,
-          value = c(35, 45)
+          max = 140,
+          value = c(0, 140)
         ),
         sliderInput(
           "filter3",
