@@ -72,21 +72,61 @@ moodLandscapeServer <- function(input,
 
   plot_obj <- shiny::reactive({
     selected = sapply(dataset()[[searchHighlightCol]], function(x) {
-      return(x %in% input$searchUi)
+      return(x %in% input$search)
     })
     
-    p <- plotly::plot_ly(
-      data = dataset(),
-      x = ~get(xCol),
-      y = ~get(yCol),
-      type = "scatter",
-      mode = "markers",
-      text = text,
-      color = selected,
-      colors = c("red", "blue")
-    ) %>%
-      plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
-      plotly::config(displayModeBar = FALSE)
+    if (sum(selected) == 0) {
+      p <- plotly::plot_ly(
+        data = dataset(),
+        x = ~get(xCol),
+        y = ~get(yCol),
+        type = "scatter",
+        mode = "markers",
+        text = text
+      ) %>%
+        plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
+        plotly::config(displayModeBar = FALSE)
+    } else if (sum(selected) > 0) {
+      p <- plotly::plot_ly() %>%
+        add_trace(
+          data = dataset() %>% 
+            filter((!!as.name(searchHighlightCol)) %in% input$search),
+          x = ~get(xCol),
+          y = ~get(yCol),
+          type = "scatter",
+          mode = "markers",
+          text = text,
+          marker = list(
+            color = 'rgb(31, 119, 180)'
+          ),
+          name = paste0('Selected ', searchHighlightCol, '(s)')
+      ) %>%
+        add_trace(
+          data = dataset() %>% 
+            filter(!((!!as.name(searchHighlightCol)) %in% input$search)),
+          x = ~get(xCol),
+          y = ~get(yCol),
+          type = "scatter",
+          mode = "markers",
+          text = text,
+          marker = list(
+            color = 'rgba(31, 119, 180, 0.1)'
+          ),
+          name = paste0('Unselected ', searchHighlightCol, '(s)')
+        ) %>% 
+        plotly::layout(
+          xaxis = cleanAxis,
+          yaxis = cleanAxis,
+          legend = list(
+            orientation = 'h',
+            xanchor = 'center',
+            x = 0.5
+          )
+        ) %>%
+        plotly::config(displayModeBar = FALSE)
+    }
+    
+    
 
     return(p)
   })
