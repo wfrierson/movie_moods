@@ -28,6 +28,10 @@ shinyUI(
 
       sidebarPanel(
         selectInput('genreFilter', 'Genre', genres),
+        selectizeInput('extra_Search',"Search by Title",
+            choices = c("Select up to 2" = "", screenplayPaths),
+            multiple = TRUE,
+            options = list(maxItems = 2)),
         sliderInput(
           "filter2",
           "Filter 2",
