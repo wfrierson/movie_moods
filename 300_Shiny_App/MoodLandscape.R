@@ -98,8 +98,7 @@ moodLandscapeServer <- function(input,
           text = text,
           marker = list(
             color = 'rgb(31, 119, 180)'
-          ),
-          name = paste0('Selected ', searchHighlightCol, '(s)')
+          )
       ) %>%
         add_trace(
           data = dataset() %>% 
@@ -111,17 +110,12 @@ moodLandscapeServer <- function(input,
           text = text,
           marker = list(
             color = 'rgba(31, 119, 180, 0.1)'
-          ),
-          name = paste0('Unselected ', searchHighlightCol, '(s)')
+          )
         ) %>% 
         plotly::layout(
           xaxis = cleanAxis,
           yaxis = cleanAxis,
-          legend = list(
-            orientation = 'h',
-            xanchor = 'center',
-            x = 0.5
-          )
+          showlegend = FALSE
         ) %>%
         plotly::config(displayModeBar = FALSE)
     }
