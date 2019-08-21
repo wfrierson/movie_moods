@@ -16,6 +16,15 @@ screenplayPaths <- data.table::fread(
 )
 genres <- tail(colnames(screenplayPaths), 22)
 
+screenplayMoodscores <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "702_screenplayMoodProb.movie.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
 shinyUI(
   fluidPage(
     theme = shinythemes::shinytheme("darkly"),
@@ -29,7 +38,7 @@ shinyUI(
       sidebarPanel(
         selectInput('genreFilter', 'Genre', genres),
         selectizeInput('searchUi',"Search by Title",
-            choices = c("Select up to 2" = "", screenplayPaths$movie),
+            choices = c("Select up to 2" = "", screenplayMoodscores$movie),
             multiple = FALSE,
             options = list(maxItems = 2)),
         sliderInput(

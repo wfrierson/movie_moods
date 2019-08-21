@@ -27,14 +27,16 @@ moodStarUi <- function(id, width, height) {
 moodStarServer <- function(input, output, session, filtered) {
   
   #set up elements independent of filtering
-  moodLabels <- c("anger", "fear", "anticipation", "trust", "surprise", "sadness", "joy", "disgust")
+  #afraid|amused|angry|annoyed|dont_care|happy|inspired|sad|
+  moodLabels <- c("afraid", "amused", "angry", "annoyed", "dont_care", "happy", "inspired", "sad")
   moodcols <- c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8")
-  movies <- reactive({rownames(filtered())})
-  #movies_labs <- dataset[movie,]
+  movies <- reactive({filtered()$movie})
+  movie_nums <- reactive({rownames(filtered())})
+      #movies_labs <- dataset[movie,]
   
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
-      filtered()[,moodcols],
+      filtered()[,moodLabels],
       type = "scatterpolar",
       fill = "toself"
     ) %>%
@@ -42,18 +44,18 @@ moodStarServer <- function(input, output, session, filtered) {
         polar = list(
           radialaxis = list(
             visible = TRUE,
-            range = c(0,0.2)
+            range = c(0,0.15)
           )
         )
       ) %>%
       plotly::config(displayModeBar = FALSE)
     
-    for (movie in movies()) {
+    for (movie_num in movie_nums()) {
       p <- plotly::add_trace(
         p,
-        r = abs(array(filtered()[movie,moodcols])),
+        r = abs(array(filtered()[movie_num,moodLabels])),
         theta = moodLabels,
-        #name = movie,
+        name = filtered()[movie_num,1],
         showlegend = FALSE
       )
     }

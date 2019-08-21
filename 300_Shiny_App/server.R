@@ -28,6 +28,16 @@ screenplayMoodProb.movieRotated <- data.table::fread(
   quote = ""
 )
 
+screenplayMoodscores <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "702_screenplayMoodProb.movie.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
+
 screenplayMoodProb.characterRotated <- data.table::fread(
   file = file.path(
     folder.data.processed,
@@ -80,7 +90,7 @@ shinyServer(function(input, output) {
   )
   
   filtered <- shiny::reactive({
-    SelectMovies(screenplayMoodProb.movieRotated, input$searchUi)
+    SelectMovies(screenplayMoodscores, input$searchUi)
   })
   #as.data.frame(screenplayMoodProb.movieRotated)
   # Start the server for the movies mood star module
