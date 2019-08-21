@@ -3,18 +3,6 @@ library(tidyverse)
 library(data.table)
 library(plotly)
 
-moodStarDummyData <- data.frame(
-  row.names = c("Aliens", "Reservior Dogs", "Up"),
-  anger = c(39, 1.5, 5),
-  fear = c(28, 10, 6),
-  anticipation = c(8, 39, 20),
-  trust = c(7, 31, 4),
-  surprise = c(28, 15, 30),
-  sadness = c(39, 1.5, 3),
-  joy = c(10, 5, 10),
-  disgust = c(33, 22, 10)
-)
-
 # Load processed screenplays data
 folder.data <- "../100_Data"
 folder.data.processed <- file.path(folder.data, "120_Processed_Data")
