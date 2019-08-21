@@ -119,15 +119,16 @@ shinyServer(function(input, output) {
       '</br>Word Count: ', tokenCount
     )
   )
-  
-  filtered <- shiny::reactive({
-    SelectMovies(screenplayMoodscores, input$searchUi)
+
+  movieMoodStarData <- shiny::reactive({
+    SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
   })
+  
   #as.data.frame(screenplayMoodProb.movieRotated)
   # Start the server for the movies mood star module
   shiny::callModule(
     moodStarServer,
     "movieMoodStar",
-    filtered
+    movieMoodStarData
   )
 })

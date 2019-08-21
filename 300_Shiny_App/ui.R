@@ -44,12 +44,6 @@ shinyUI(
           multiple = TRUE,
           options = list(maxItems = 5)
         ),
-        selectizeInput(
-          "searchUi","Search by Title",
-          choices = c("Select up to 2" = "", screenplayMoodscores$movie),
-          multiple = FALSE,
-          options = list(maxItems = 2)
-        ),
         sliderInput(
           "numCharactersFilter",
           "Number of Characters",
