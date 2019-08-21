@@ -31,16 +31,6 @@ moodLandscapeIxDebugUi <- function(id) {
   ns <- shiny::NS(id)
 
   elements <- shiny::tagList(
-    shiny::h3(paste("Debug info for", id)),
-    shiny::fluidRow(
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("hover_info"))),
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("click_info")))
-    ),
-    shiny::fluidRow(
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("brush_info"))),
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("search_info")))
-      
-    )
   )
   
   return(elements)
@@ -81,13 +71,19 @@ moodLandscapeServer <- function(input,
   )
 
   plot_obj <- shiny::reactive({
+    selected = sapply(dataset()[[searchHighlightCol]], function(x) {
+      return(x %in% input$searchUi)
+    })
+    
     p <- plotly::plot_ly(
       data = dataset(),
       x = ~get(xCol),
       y = ~get(yCol),
       type = "scatter",
       mode = "markers",
-      text = text
+      text = text,
+      color = selected,
+      colors = c("red", "blue")
     ) %>%
       plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
       plotly::config(displayModeBar = FALSE)
@@ -97,25 +93,6 @@ moodLandscapeServer <- function(input,
 
   output$plot <- plotly::renderPlotly({plot_obj()})
   
-  # Show debug outputs
-  output$hover_info <- shiny::renderPrint({
-    cat("Hover:\n")
-    str(input$plot_hover)
-  })
-  output$click_info <- shiny::renderPrint({
-    cat("Click:\n")
-    str(input$plot_click)
-  })
-  output$brush_info <- shiny::renderPrint({
-    cat("Brush:\n")
-    str(input$plot_brush)
-  })
-  # Show debug output for search filter
-  output$search_info <- shiny::renderPrint({
-    cat("Search:\n")
-    str(input$search)
-  })
-
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
   observe({
