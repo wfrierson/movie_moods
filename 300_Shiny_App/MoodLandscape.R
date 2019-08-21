@@ -46,7 +46,6 @@ moodLandscapeIxDebugUi <- function(id) {
   return(elements)
 }
 
-
 #' Mood Landscape plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
@@ -65,10 +64,11 @@ moodLandscapeServer <- function(input,
   
   # Dynamically render the selectizeInput UI
   output$searchUi <- shiny::renderUI({ 
-    selectizeInput(
+    shiny::selectizeInput(
       ns("search"),
       "Search by Title",
       choices = c("Select up to 5" = "", dataset()[[searchHighlightCol]]),
+      selected = input$search,
       multiple = TRUE,
       options = list(maxItems = 5)
     )
