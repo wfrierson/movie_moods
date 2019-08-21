@@ -19,19 +19,14 @@ moodStarUi <- function(id, width, height) {
   return(elements)
 }
 
-
-
 #' Mood Star plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
 #' @param dataset a data-frame of values with row names as movie titles and
 #' column names for moods
-moodStarServer <- function(input, output, session, dataset) {
+moodStarServer <- function(input, output, session, filtered) {
   
-  #this doesnt work yet
-  filtered <- reactive( { subset(dataset, movie %in% c("12monkeys","8mm")) })
-  #filtered <- reactive( { subset(dataset, movie %in% output$searchUi) })
-  
+  #set up elements independent of filtering
   moodLabels <- c("anger", "fear", "anticipation", "trust", "surprise", "sadness", "joy", "disgust")
   moodcols <- c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8")
   movies <- reactive({rownames(filtered())})
@@ -67,4 +62,5 @@ moodStarServer <- function(input, output, session, dataset) {
   })
 
   output$plot <- plotly::renderPlotly({plot_obj()})
+
 }

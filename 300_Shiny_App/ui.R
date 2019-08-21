@@ -28,9 +28,9 @@ shinyUI(
 
       sidebarPanel(
         selectInput('genreFilter', 'Genre', genres),
-        selectizeInput('extra_Search',"Search by Title",
-            choices = c("Select up to 2" = "", screenplayPaths),
-            multiple = TRUE,
+        selectizeInput('searchUi',"Search by Title",
+            choices = c("Select up to 2" = "", screenplayPaths$movie),
+            multiple = FALSE,
             options = list(maxItems = 2)),
         sliderInput(
           "filter2",

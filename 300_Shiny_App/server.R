@@ -37,6 +37,16 @@ screenplayMoodProb.characterRotated <- data.table::fread(
   quote = ""
 )
 
+SelectMovies <- function(df, selection) {
+  filtered <- df
+  
+  if (length(selection) > 0) {
+    filtered <-  dplyr::filter(df, movie %in% selection)
+  }
+  
+  return(filtered)
+}
+
 shinyServer(function(input, output) {
   # Start the server for the movieMoodLandscape module
   movieMoodLandscape <- shiny::callModule(
@@ -69,10 +79,14 @@ shinyServer(function(input, output) {
     )
   )
   
+  filtered <- shiny::reactive({
+    SelectMovies(screenplayMoodProb.movieRotated, input$searchUi)
+  })
+  #as.data.frame(screenplayMoodProb.movieRotated)
   # Start the server for the movies mood star module
   shiny::callModule(
     moodStarServer,
     "movieMoodStar",
-    as.data.frame(screenplayMoodProb.movieRotated)
+    filtered
   )
 })
