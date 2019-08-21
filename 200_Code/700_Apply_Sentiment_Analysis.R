@@ -46,11 +46,18 @@ screenplayTagged[
   )
 ]
 
+moods.NRC = c(
+  'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
+  'trust'
+)
+
 # Append word-mood probabilities from EmoLex using exact match via Term
-screenplayMoodProb <- dictionary.NRC[
-  screenplayTagged
+screenplayMoodProb <- dictionary.NRC[, mget(c('Term', moods.NRC))][
+  screenplayTagged[!is.na(posLabel)]
   , on = .(Term)
-  , nomatch = FALSE
+][
+  is.na(anger)
+  , (moods.NRC) := FALSE
 ]
 
 # Aggregate match rate of tokens from selected screenplays with EmoLex:
@@ -105,7 +112,7 @@ screenplayMoodProb.sceneCharacter <- AggregateMoods(
 
 saveRDS(
   screenplayMoodProb,
-  file = file.path(folder.data.processed, '701_screenplayMoodProb.rds'),
+  file = file.path(folder.data.processed, '701_screenplayMoodProb.rds')
 )
 
 data.table::setorder(screenplayMoodProb.movie, movie)
