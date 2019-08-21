@@ -3,18 +3,6 @@ library(tidyverse)
 library(data.table)
 library(plotly)
 
-moodStarDummyData <- data.frame(
-  row.names = c("Aliens", "Reservior Dogs", "Up"),
-  anger = c(39, 1.5, 5),
-  fear = c(28, 10, 6),
-  anticipation = c(8, 39, 20),
-  trust = c(7, 31, 4),
-  surprise = c(28, 15, 30),
-  sadness = c(39, 1.5, 3),
-  joy = c(10, 5, 10),
-  disgust = c(33, 22, 10)
-)
-
 # Load processed screenplays data
 folder.data <- "../100_Data"
 folder.data.processed <- file.path(folder.data, "120_Processed_Data")
@@ -28,6 +16,16 @@ screenplayMoodProb.movieRotated <- data.table::fread(
   quote = ""
 )
 
+screenplayMoodscores <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "702_screenplayMoodProb.movie.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
+
 screenplayMoodProb.characterRotated <- data.table::fread(
   file = file.path(
     folder.data.processed,
@@ -37,6 +35,16 @@ screenplayMoodProb.characterRotated <- data.table::fread(
   quote = ""
 )
 
+SelectMovies <- function(df, selection) {
+  filtered <- head(df, 0)
+  
+  if (length(selection) > 0) {
+    filtered <-  dplyr::filter(df, movie %in% selection)
+  }
+  
+  return(filtered)
+}
+  
 FilterMovies <- function(df, genres, numCharacters) {
   # Default: if no filters selected, show all movies
   filtered <- df
@@ -48,7 +56,6 @@ FilterMovies <- function(df, genres, numCharacters) {
       dplyr::any_vars(. == 1)
     )
   }
-  
   
   filtered <-  dplyr::filter(
     filtered,
@@ -88,7 +95,7 @@ shinyServer(function(input, output) {
       dplyr::filter(movie %in% movieMoodLandscape$selected)
   })
 
-  # And for characters. TODO: bring in real datasets and enable cross filtering
+  # And for characters
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
@@ -102,11 +109,29 @@ shinyServer(function(input, output) {
       '</br>Word Count: ', tokenCount
     )
   )
+
+  # Start the server for mood stars
+  moodCols <- c(
+    "afraid",
+    "amused",
+    "angry",
+    "annoyed",
+    "dont_care",
+    "happy",
+    "inspired",
+    "sad"
+  )
+  
+  movieMoodStarData <- shiny::reactive({
+    SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
+  })
   
   # Start the server for the movies mood star module
   shiny::callModule(
     moodStarServer,
     "movieMoodStar",
-    moodStarDummyData
+    movieMoodStarData,
+    nameCol = "movie",
+    moodCols = moodCols
   )
 })

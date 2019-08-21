@@ -16,6 +16,15 @@ screenplayPaths <- data.table::fread(
 )
 genres <- tail(colnames(screenplayPaths), 22)
 
+screenplayMoodscores <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "702_screenplayMoodProb.movie.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
 shinyUI(
   fluidPage(
     theme = shinythemes::shinytheme("darkly"),
