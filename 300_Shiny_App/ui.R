@@ -27,6 +27,7 @@ shinyUI(
     sidebarLayout(
 
       sidebarPanel(
+        width = 2,
         selectizeInput(
           "genreFilter",
           "Genre",
@@ -44,56 +45,44 @@ shinyUI(
       ),
 
       mainPanel(
+        shiny::fluidRow(h3("Movies")),
         fluidRow(
-          box(
-            title = "Movies",
+          shiny::column(
             width = 6,
-            height = 400,
             moodLandscapeUi(
               "movieMoodLandscape",
               width = "100%",
-              height = "240"
+              height = "320"
             )
           ),
-          box(
-            title = "Mood star for selected movies",
+          shiny::column(
             width = 6,
-            height = 400,
             moodStarUi(
               "movieMoodStar",
               width = "100%",
-              height = "240"
+              height = "400"
             )
           )
         ),
         hr(),
+        shiny::fluidRow(h3("Characters")),
         fluidRow(
-          box(
-            title = "Characters",
+          shiny::column(
             width = 6,
-            height = 400,
             moodLandscapeUi(
               "charactersMoodLandscape",
               width = "100%",
-              height = "240"
+              height = "320"
             )
           ),
-          box(
-            title = "Mood star for selected characters",
+          shiny::column(
             width = 6,
-            height = 300
+            moodStarUi(
+              "characterMoodStar",
+              width = "100%",
+              height = "400"
+            )
           )
-        ),
-        fluidRow(
-          box(
-            title = "Character mood progression",
-            width = 12,
-            height = 300
-          )
-        ),
-        hr(),
-        fluidRow(
-          column(width = 12, moodLandscapeIxDebugUi("movieMoodLandscape"))
         )
       )
     )

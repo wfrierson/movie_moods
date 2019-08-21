@@ -87,7 +87,11 @@ moodLandscapeServer <- function(input,
       y = ~get(yCol),
       type = "scatter",
       mode = "markers",
-      text = text
+      text = text,
+      marker = list(
+        color = 'rgba(31, 119, 180, 0.75)',
+        size = 5
+      )
     ) %>%
       plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
       plotly::config(displayModeBar = FALSE)
