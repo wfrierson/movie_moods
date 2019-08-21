@@ -22,40 +22,38 @@ moodStarUi <- function(id, width, height) {
 #' Mood Star plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
-#' @param dataset a data-frame of values with row names as movie titles and
-#' column names for moods
-moodStarServer <- function(input, output, session, filtered) {
-  
-  #set up elements independent of filtering
-  #afraid|amused|angry|annoyed|dont_care|happy|inspired|sad|
-  moodLabels <- c("afraid", "amused", "angry", "annoyed", "dont_care", "happy", "inspired", "sad")
-  moodcols <- c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8")
-  movies <- reactive({filtered()$movie})
-  movie_nums <- reactive({rownames(filtered())})
-      #movies_labs <- dataset[movie,]
-  
+#' @param dataset a (reactive) data-frame of values
+#' @param nameCol the column to use as series name
+#' @param moodCols the columns to use for plotting the mood star
+moodStarServer <- function(input, output, session, dataset, nameCol, moodCols) {
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
-      filtered()[,moodLabels],
+      dataset(),
       type = "scatterpolar",
-      fill = "toself"
+      fill = "toself",
+      mode = "markers"
     ) %>%
       plotly::layout(
         polar = list(
           radialaxis = list(
             visible = TRUE,
-            range = c(0,0.15)
+            range = c(0, 0.15)
           )
         )
       ) %>%
       plotly::config(displayModeBar = FALSE)
     
-    for (movie_num in movie_nums()) {
+    names <- dataset()[[nameCol]]
+    print(names)
+    for (name in names) {
+      row <- dataset() %>%
+        dplyr::filter(get(nameCol) == name)
+      print(row)
       p <- plotly::add_trace(
         p,
-        r = abs(array(filtered()[movie_num,moodLabels])),
-        theta = moodLabels,
-        name = filtered()[movie_num,1],
+        r = abs(array(row[,moodCols])),
+        theta = moodCols,
+        name = name,
         showlegend = FALSE
       )
     }

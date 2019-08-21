@@ -36,11 +36,13 @@ screenplayMoodProb.characterRotated <- data.table::fread(
 )
 
 SelectMovies <- function(df, selection) {
-  filtered <- df
+  filtered <- head(df, 0)
   
   if (length(selection) > 0) {
     filtered <-  dplyr::filter(df, movie %in% selection)
   }
+  
+  return(filtered)
 }
   
 FilterMovies <- function(df, genres, numCharacters) {
@@ -93,7 +95,7 @@ shinyServer(function(input, output) {
       dplyr::filter(movie %in% movieMoodLandscape$selected)
   })
 
-  # And for characters. TODO: bring in real datasets and enable cross filtering
+  # And for characters
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
@@ -108,6 +110,18 @@ shinyServer(function(input, output) {
     )
   )
 
+  # Start the server for mood stars
+  moodCols <- c(
+    "afraid",
+    "amused",
+    "angry",
+    "annoyed",
+    "dont_care",
+    "happy",
+    "inspired",
+    "sad"
+  )
+  
   movieMoodStarData <- shiny::reactive({
     SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
   })
@@ -117,6 +131,8 @@ shinyServer(function(input, output) {
   shiny::callModule(
     moodStarServer,
     "movieMoodStar",
-    movieMoodStarData
+    movieMoodStarData,
+    nameCol = "movie",
+    moodCols = moodCols
   )
 })
