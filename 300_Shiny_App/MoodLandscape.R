@@ -60,7 +60,8 @@ moodLandscapeServer <- function(input,
                                 xCol,
                                 yCol,
                                 searchHighlightCol,
-                                text) {
+                                text,
+                                searchResultName) {
   ns = session$ns
   
   # Dynamically render the selectizeInput UI
@@ -123,7 +124,7 @@ moodLandscapeServer <- function(input,
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
   observe({
-    
+    vals$selected <- input$search
   })
 
   return(vals)
