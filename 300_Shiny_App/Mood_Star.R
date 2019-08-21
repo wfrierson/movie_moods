@@ -44,7 +44,6 @@ moodStarServer <- function(input, output, session, dataset, nameCol, moodCols) {
       plotly::config(displayModeBar = FALSE)
     
     names <- dataset()[[nameCol]]
-    print(names)
     for (name in names) {
       row <- dataset() %>%
         dplyr::filter(get(nameCol) == name)
