@@ -45,57 +45,44 @@ shinyUI(
       ),
 
       mainPanel(
+        shiny::fluidRow(h3("Movies")),
         fluidRow(
-          box(
-            title = "Movies",
+          shiny::column(
             width = 6,
-            height = 450,
-            align = "left",
             moodLandscapeUi(
               "movieMoodLandscape",
               width = "100%",
               height = "320"
             )
           ),
-          box(
-            title = "Mood star for selected movies",
+          shiny::column(
             width = 6,
-            height = 450,
             moodStarUi(
               "movieMoodStar",
               width = "100%",
-              height = "320"
+              height = "400"
             )
           )
         ),
         hr(),
+        shiny::fluidRow(h3("Characters")),
         fluidRow(
-          box(
-            title = "Characters",
+          shiny::column(
             width = 6,
-            height = 400,
             moodLandscapeUi(
               "charactersMoodLandscape",
               width = "100%",
               height = "320"
             )
           ),
-          box(
-            title = "Mood star for selected characters",
+          shiny::column(
             width = 6,
-            height = 320
+            moodStarUi(
+              "characterMoodStar",
+              width = "100%",
+              height = "400"
+            )
           )
-        ),
-        fluidRow(
-          box(
-            title = "Character mood progression",
-            width = 12,
-            height = 320
-          )
-        ),
-        hr(),
-        fluidRow(
-          column(width = 12, moodLandscapeIxDebugUi("movieMoodLandscape"))
         )
       )
     )
