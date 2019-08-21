@@ -40,13 +40,6 @@ shinyUI(
           min = 1,
           max = 140,
           value = c(0, 140)
-        ),
-        sliderInput(
-          "filter3",
-          "Filter 3",
-          min = 1,
-          max = 50,
-          value = 30
         )
       ),
 
