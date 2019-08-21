@@ -50,7 +50,7 @@ moodLandscapeIxDebugUi <- function(id) {
 #' Mood Landscape plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
-#' @param dataset data frame (non-reactive) with variables \code{x} and \code {y}
+#' @param dataset data frame (reactive)
 #' @param searchHighlightCol (non-reactive) variable for the name of column to
 #' use when filtering for highlight in the visual
 moodLandscapeServer <- function(input,
@@ -68,7 +68,7 @@ moodLandscapeServer <- function(input,
     selectizeInput(
       ns("search"),
       "Search by Title",
-      choices = c("Select up to 5" = "", dataset[[searchHighlightCol]]),
+      choices = c("Select up to 5" = "", dataset()[[searchHighlightCol]]),
       multiple = TRUE,
       options = list(maxItems = 5)
     )
@@ -82,7 +82,7 @@ moodLandscapeServer <- function(input,
 
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
-      data = dataset,
+      data = dataset(),
       x = ~get(xCol),
       y = ~get(yCol),
       type = "scatter",

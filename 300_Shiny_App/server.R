@@ -42,7 +42,7 @@ shinyServer(function(input, output) {
   movieMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "movieMoodLandscape",
-    screenplayMoodProb.movieRotated,
+    reactive(screenplayMoodProb.movieRotated),
     xCol = "PC1",
     yCol = "PC2",
     searchHighlightCol = "movie",
@@ -58,7 +58,7 @@ shinyServer(function(input, output) {
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
-    dataset,
+    reactive(dataset),
     xCol = "x",
     yCol = "y",
     searchHighlightCol = "Movie",
