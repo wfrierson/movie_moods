@@ -41,10 +41,11 @@ moodLandscapeServer <- function(input,
   
   # Dynamically render the selectizeInput UI
   output$searchUi <- shiny::renderUI({ 
-    selectizeInput(
+    shiny::selectizeInput(
       ns("search"),
       "Search by Title",
       choices = c("Select up to 5" = "", dataset()[[searchHighlightCol]]),
+      selected = input$search,
       multiple = TRUE,
       options = list(maxItems = 5)
     )
@@ -57,20 +58,54 @@ moodLandscapeServer <- function(input,
   )
 
   plot_obj <- shiny::reactive({
-    p <- plotly::plot_ly(
-      data = dataset(),
-      x = ~get(xCol),
-      y = ~get(yCol),
-      type = "scatter",
-      mode = "markers",
-      text = text,
-      marker = list(
-        color = 'rgba(31, 119, 180, 0.75)',
-        size = 5
-      )
-    ) %>%
-      plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
-      plotly::config(displayModeBar = FALSE)
+    selected = sapply(dataset()[[searchHighlightCol]], function(x) {
+      return(x %in% input$search)
+    })
+    
+    if (sum(selected) == 0) {
+      p <- plotly::plot_ly(
+        data = dataset(),
+        x = ~get(xCol),
+        y = ~get(yCol),
+        type = "scatter",
+        mode = "markers",
+        text = text
+      ) %>%
+        plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
+        plotly::config(displayModeBar = FALSE)
+    } else if (sum(selected) > 0) {
+      p <- plotly::plot_ly() %>%
+        add_trace(
+          data = dataset() %>% 
+            filter((!!as.name(searchHighlightCol)) %in% input$search),
+          x = ~get(xCol),
+          y = ~get(yCol),
+          type = "scatter",
+          mode = "markers",
+          text = text,
+          marker = list(
+            color = 'rgb(31, 119, 180)'
+          )
+      ) %>%
+        add_trace(
+          data = dataset() %>% 
+            filter(!((!!as.name(searchHighlightCol)) %in% input$search)),
+          x = ~get(xCol),
+          y = ~get(yCol),
+          type = "scatter",
+          mode = "markers",
+          text = text,
+          marker = list(
+            color = 'rgba(31, 119, 180, 0.1)'
+          )
+        ) %>% 
+        plotly::layout(
+          xaxis = cleanAxis,
+          yaxis = cleanAxis,
+          showlegend = FALSE
+        ) %>%
+        plotly::config(displayModeBar = FALSE)
+    }
 
     return(p)
   })

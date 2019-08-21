@@ -110,6 +110,8 @@ shinyServer(function(input, output) {
   )
   
   filteredCharacters <- shiny::reactive({
+    shiny::req(movieMoodLandscape$selected)
+    
     screenplayMoodProb.characterRotated %>%
       dplyr::filter(movie %in% movieMoodLandscape$selected)
   })
