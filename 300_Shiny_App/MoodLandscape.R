@@ -22,31 +22,6 @@ moodLandscapeUi <- function(id, width, height) {
 
 
 
-#' Mood Landscape plot module debug user interface for interactions
-#'
-#' @param id, character used to specify namespace, see \code{shiny::\link[shiny]{NS}}
-#'
-#' @return a \code{shiny::\link[shiny]{tagList}} containing UI elements
-moodLandscapeIxDebugUi <- function(id) {
-  ns <- shiny::NS(id)
-
-  elements <- shiny::tagList(
-    shiny::h3(paste("Debug info for", id)),
-    shiny::fluidRow(
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("hover_info"))),
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("click_info")))
-    ),
-    shiny::fluidRow(
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("brush_info"))),
-      shiny::column(width = 6, shiny::verbatimTextOutput(ns("search_info")))
-      
-    )
-  )
-  
-  return(elements)
-}
-
-
 #' Mood Landscape plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
@@ -102,25 +77,6 @@ moodLandscapeServer <- function(input,
 
   output$plot <- plotly::renderPlotly({plot_obj()})
   
-  # Show debug outputs
-  output$hover_info <- shiny::renderPrint({
-    cat("Hover:\n")
-    str(input$plot_hover)
-  })
-  output$click_info <- shiny::renderPrint({
-    cat("Click:\n")
-    str(input$plot_click)
-  })
-  output$brush_info <- shiny::renderPrint({
-    cat("Brush:\n")
-    str(input$plot_brush)
-  })
-  # Show debug output for search filter
-  output$search_info <- shiny::renderPrint({
-    cat("Search:\n")
-    str(input$search)
-  })
-
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
   observe({
