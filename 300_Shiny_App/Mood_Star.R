@@ -47,7 +47,6 @@ moodStarServer <- function(input, output, session, dataset, nameCol, moodCols) {
     for (name in names) {
       row <- dataset() %>%
         dplyr::filter(get(nameCol) == name)
-      print(row)
       p <- plotly::add_trace(
         p,
         r = abs(array(row[,moodCols])),
