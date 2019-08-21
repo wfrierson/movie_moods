@@ -73,6 +73,6 @@ shinyServer(function(input, output) {
   shiny::callModule(
     moodStarServer,
     "movieMoodStar",
-    moodStarDummyData
+    as.data.frame(screenplayMoodProb.movieRotated[1:2])
   )
 })

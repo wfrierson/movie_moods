@@ -27,12 +27,21 @@ moodStarUi <- function(id, width, height) {
 #' @param dataset a data-frame of values with row names as movie titles and
 #' column names for moods
 moodStarServer <- function(input, output, session, dataset) {
-  moodLabels <- names(dataset)
+  
+  #this doesnt work yet
+  df_subset <- shiny::reactive({
+    a <- subset(dataset, movie == "12monkeys")
+    return(a)
+  })
+  
+  moodLabels <- c("anger", "fear", "anticipation", "trust", "surprise", "sadness", "joy", "disgust")
+  moodcols <- c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8")
   movies <- rownames(dataset)
+  movies_labs <- dataset$movie
   
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
-      dataset,
+      dataset[,moodcols],
       type = "scatterpolar",
       fill = "toself"
     ) %>%
@@ -40,7 +49,7 @@ moodStarServer <- function(input, output, session, dataset) {
         polar = list(
           radialaxis = list(
             visible = TRUE,
-            range = c(0,50)
+            range = c(0,0.2)
           )
         )
       ) %>%
@@ -49,7 +58,7 @@ moodStarServer <- function(input, output, session, dataset) {
     for (movie in movies) {
       p <- plotly::add_trace(
         p,
-        r = array(dataset[movie,]),
+        r = abs(array(dataset[movie,moodcols])),
         theta = moodLabels,
         name = movie,
         showlegend = FALSE
