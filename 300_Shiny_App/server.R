@@ -53,16 +53,42 @@ SelectMovies <- function(df, selection) {
   if (length(selection) > 0) {
     filtered <-  dplyr::filter(df, movie %in% selection)
   }
+}
   
+FilterMovies <- function(df, genres, numCharacters) {
+  # Default: if no filters selected, show all movies
+  filtered <- df
+
+  if (length(genres) > 0) {
+    filtered <-  dplyr::filter_at(
+      filtered,
+      vars(genres),
+      dplyr::any_vars(. == 1)
+    )
+  }
+  
+  filtered <-  dplyr::filter(
+    filtered,
+    characterCount >= numCharacters[1] & characterCount <= numCharacters[2]
+  )
+
   return(filtered)
 }
 
 shinyServer(function(input, output) {
+  # First, filter the movies dataset according to the filter panel
+  filteredMovies <- shiny::reactive({
+    FilterMovies(
+      screenplayMoodProb.movieRotated,
+      input$genreFilter,
+      input$numCharactersFilter)
+  })
+  
   # Start the server for the movieMoodLandscape module
   movieMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "movieMoodLandscape",
-    screenplayMoodProb.movieRotated,
+    filteredMovies,
     xCol = "PC1",
     yCol = "PC2",
     searchHighlightCol = "movie",
@@ -73,19 +99,24 @@ shinyServer(function(input, output) {
       "<br>Genres: ", genreList
     )
   )
+  
+  filteredCharacters <- shiny::reactive({
+    screenplayMoodProb.characterRotated %>%
+      dplyr::filter(movie %in% movieMoodLandscape$selected)
+  })
 
   # And for characters. TODO: bring in real datasets and enable cross filtering
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
-    dataset,
-    xCol = "x",
-    yCol = "y",
-    searchHighlightCol = "Movie",
+    filteredCharacters,
+    xCol = "PC1",
+    yCol = "PC2",
+    searchHighlightCol = "character",
     text = ~paste(
-      'Character: ', x,
-      '</br>Movie: ', x,
-      '</br>Word Count: ', x
+      'Character: ', character,
+      '</br>Movie: ', movie,
+      '</br>Word Count: ', tokenCount
     )
   )
   
