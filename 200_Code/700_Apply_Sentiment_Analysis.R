@@ -29,105 +29,44 @@ screenplayTransformed <- readRDS(
   file.path(folder.data.processed, '401_screenplayTransformed.rds')
 )
 
+dictionary.NRC <- data.table::fread(
+  file.path(folder.data.processed, '101_dictionary.NRC.csv')
+  , stringsAsFactors = FALSE
+)
+
 ###############################################################################
-# PREPARE EMOTIONAL LEXICON
+# APPEND MOODS FROM EMOLEX
 
-file.DMpp <- file.path(
-  'DepecheMood++',
-  'DepecheMood_english_lemmapos_full.tsv'
-)
-
-# Create vector of DM++ moods and column names
-moods.DMpp <- c(
-  'afraid', 'amused', 'angry', 'annoyed', 'dont_care', 'happy', 'inspired',
-  'sad'
-)
-names(moods.DMpp) <- moods.DMpp
-fields.DMpp <- c('tokenPOS', moods.DMpp, 'freq')
-
-# Import DM++ lexicon
-dictionary.DMpp <- data.table::fread(
-  file.path(folder.data.raw, file.DMpp)
-  , header = TRUE
-  , col.names = fields.DMpp
-)
-
-# Calculate overall tokenPOS probability
-dictionary.DMpp[
-  , prob := freq / dictionary.DMpp[, sum(freq)]
-]
-
-# Calculate overall probabilities for each mood
-moodProb.DMpp <- dictionary.DMpp[
-  , lapply(
-      .SD,
-      function(mood) sum(mood * prob)
+# Use lemmatized token unless it's NULL. Otherwise, use the original token.
+screenplayTagged[
+  , Term := ifelse(
+    lemma == '<unknown>',
+    token,
+    stringi::stri_trans_tolower(lemma)
   )
-  , .SDcols = moods.DMpp
 ]
 
-# Use Bayes' rule to calculate probability of getting word given each mood
-# and append token part-of-speech to tokenPOS-mood probabilities
-dictionary.DMpp <- cbind(
-  dictionary.DMpp[, .(tokenPOS)],
-  dictionary.DMpp[
-    , lapply(
-        moods.DMpp, function(mood) get(mood) * prob / moodProb.DMpp[, get(mood)]
-      )
-  ]
-)
-
-###############################################################################
-# APPEND MOODS FROM DEPECHEMOOD++
-
-# Append word-mood probabilities from DM++ using exact match via tokenPOS
-screenplayMoodProb <- dictionary.DMpp[, mget(fields.DMpp[-10])][
-  screenplayTagged[!is.na(tokenPOS)]
-  , on = .(tokenPOS)
-]
-
-# Retry matching with DM++ for those tokens with no match in the first round. 
-# This time match using the column, lemmaPOS, which uses the lemmatized
-# version of the token to account for commoon words that by bad luck don't
-# appear in DM++. 
-#
-# E.g., 'climbs' is not in DM++, but 'climb' is. Lemmatizing 'climbs' to 'climb'
-# and using the tagged part-of-speech would append the correct mood 
-# probabilities from DM++.
-screenplayMoodProb.lemmaMatch <- dictionary.DMpp[, mget(fields.DMpp[-10])][
-  screenplayMoodProb[is.na(afraid)]
-  , on = .(tokenPOS = lemmaPOS)
+# Append word-mood probabilities from EmoLex using exact match via Term
+screenplayMoodProb <- dictionary.NRC[
+  screenplayTagged
+  , on = .(Term)
   , nomatch = FALSE
-][
-  # Delete unneeded columns
-  , paste0('i.', c('tokenPOS', moods.DMpp)) := NULL
 ]
 
-# Combine tokens where tokenPOS matched, or tokenPOS didn't match but lemmaPOS
-# did match
-screenplayMoodProb <- rbindlist(list(
-  screenplayMoodProb[!is.na(afraid), -'lemmaPOS'],
-  screenplayMoodProb.lemmaMatch
-))
-
-# Remove partial matches via lemmaPOS
-rm(screenplayMoodProb.lemmaMatch)
-
-# Aggregate match rate of tokens from selected screenplays with DM++:
+# Aggregate match rate of tokens from selected screenplays with EmoLex:
 #
-# nrow(screenplayMoodProb) / nrow(screenplayTagged[!is.na(tokenPOS)])
+# nrow(screenplayMoodProb) / nrow(screenplayTagged[!is.na(posLabel)])
 #
-# 0.8876894
+# 0.5371756
 
 ###############################################################################
 # AGGREGATE MOODS AT DIFFERENT LEVELS
 
 # Append character labels to screenplayMoodProb
-screenplayMoodProb <- screenplayTransformed[
+screenplayMoodProb <- unique(screenplayTransformed[
   !is.na(character),
-  .N,
-  keyby = .(movie, sectionNumber, sceneNumber, component, character)
-][
+  .(movie, sectionNumber, sceneNumber, component, character)
+])[
   screenplayMoodProb
   , on = .(movie, sectionNumber, sceneNumber, component)
 ]
@@ -164,11 +103,9 @@ screenplayMoodProb.sceneCharacter <- AggregateMoods(
 ###############################################################################
 # EXPORT RESULTS
 
-data.table::fwrite(
-  dictionary.DMpp,
-  file = file.path(folder.data.processed, '701_dictionary.DMpp.csv'),
-  row.names = FALSE,
-  quote = FALSE
+saveRDS(
+  screenplayMoodProb,
+  file = file.path(folder.data.processed, '701_screenplayMoodProb.rds'),
 )
 
 data.table::setorder(screenplayMoodProb.movie, movie)
