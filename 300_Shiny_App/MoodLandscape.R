@@ -9,13 +9,11 @@ moodLandscapeUi <- function(id, width, height) {
   ns <- shiny::NS(id)
   
   elements <- shiny::tagList(
-    shiny::plotOutput(
+    htmlOutput(ns("searchUi")),
+    plotly::plotlyOutput(
       ns("plot"),
       width,
-      height,
-      hover = ns("plot_hover"),
-      click = ns("plot_click"),
-      brush = ns("plot_brush")
+      height
     )
   )
   
@@ -38,36 +36,66 @@ moodLandscapeIxDebugUi <- function(id) {
       shiny::column(width = 6, shiny::verbatimTextOutput(ns("hover_info"))),
       shiny::column(width = 6, shiny::verbatimTextOutput(ns("click_info")))
     ),
-    shiny::verbatimTextOutput(ns("brush_info"))
+    shiny::fluidRow(
+      shiny::column(width = 6, shiny::verbatimTextOutput(ns("brush_info"))),
+      shiny::column(width = 6, shiny::verbatimTextOutput(ns("search_info")))
+      
+    )
   )
   
   return(elements)
 }
 
 
-
 #' Mood Landscape plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate
 #' @param dataset data frame (non-reactive) with variables \code{x} and \code {y}
-moodLandscapeServer <- function(input, output, session, dataset) {
+#' @param searchHighlightCol (non-reactive) variable for the name of column to
+#' use when filtering for highlight in the visual
+moodLandscapeServer <- function(input,
+                                output,
+                                session,
+                                dataset,
+                                xCol,
+                                yCol,
+                                searchHighlightCol,
+                                text) {
+  ns = session$ns
+  
+  # Dynamically render the selectizeInput UI
+  output$searchUi <- shiny::renderUI({ 
+    selectizeInput(
+      ns("search"),
+      "Search by Title",
+      choices = c("Select up to 5" = "", dataset[[searchHighlightCol]]),
+      multiple = TRUE,
+      options = list(maxItems = 5)
+    )
+  })
+  
+  # Render the plot UI
+  cleanAxis <- list(
+    title = NA,
+    showticklabels = FALSE
+  )
+
   plot_obj <- shiny::reactive({
-    p <- ggplot2::ggplot(dataset, aes(x, y)) +
-      ggplot2::geom_point() +
-      ggplot2::geom_vline(xintercept = 0) +
-      ggplot2::geom_hline(yintercept = 0) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(
-        axis.ticks = ggplot2::element_blank(),
-        axis.title = ggplot2::element_blank(),
-        axis.text = ggplot2::element_blank(),
-        legend.position = "none")
+    p <- plotly::plot_ly(
+      data = dataset,
+      x = ~get(xCol),
+      y = ~get(yCol),
+      type = "scatter",
+      mode = "markers",
+      text = text
+    ) %>%
+      plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
+      plotly::config(displayModeBar = FALSE)
+
     return(p)
   })
 
-  output$plot <- shiny::renderPlot({plot_obj()})
-  
-  
+  output$plot <- plotly::renderPlotly({plot_obj()})
   
   # Show debug outputs
   output$hover_info <- shiny::renderPrint({
@@ -82,11 +110,16 @@ moodLandscapeServer <- function(input, output, session, dataset) {
     cat("Brush:\n")
     str(input$plot_brush)
   })
+  # Show debug output for search filter
+  output$search_info <- shiny::renderPrint({
+    cat("Search:\n")
+    str(input$search)
+  })
 
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
   observe({
-    vals$brushedPoints <- shiny::brushedPoints(dataset, input$plot_brush)
+    
   })
 
   return(vals)

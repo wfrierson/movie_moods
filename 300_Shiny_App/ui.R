@@ -18,26 +18,26 @@ genres <- tail(colnames(screenplayPaths), 22)
 
 shinyUI(
   fluidPage(
-    theme = shinythemes::shinytheme('darkly'),
+    theme = shinythemes::shinytheme("darkly"),
 
     shinyWidgets::useShinydashboard(),
 
-    titlePanel('Movie Moods'),
+    titlePanel("Movie Moods"),
 
     sidebarLayout(
-        
+
       sidebarPanel(
         selectInput('genreFilter', 'Genre', genres),
         sliderInput(
-          'filter2',
-          'Filter 2',
+          "filter2",
+          "Filter 2",
           min = 1,
           max = 50,
           value = c(35, 45)
         ),
         sliderInput(
-          'filter3',
-          'Filter 3',
+          "filter3",
+          "Filter 3",
           min = 1,
           max = 50,
           value = 30
@@ -49,7 +49,7 @@ shinyUI(
           box(
             title = "Movies",
             width = 6,
-            height = 300,
+            height = 400,
             moodLandscapeUi(
               "movieMoodLandscape",
               width = "100%",
@@ -59,7 +59,7 @@ shinyUI(
           box(
             title = "Mood star for selected movies",
             width = 6,
-            height = 300,
+            height = 400,
             moodStarUi(
               "movieMoodStar",
               width = "100%",
@@ -72,7 +72,7 @@ shinyUI(
           box(
             title = "Characters",
             width = 6,
-            height = 300,
+            height = 400,
             moodLandscapeUi(
               "charactersMoodLandscape",
               width = "100%",

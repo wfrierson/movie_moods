@@ -1,5 +1,7 @@
 library(shiny)
 library(tidyverse)
+library(data.table)
+library(plotly)
 
 moodStarDummyData <- data.frame(
   row.names = c("Aliens", "Reservior Dogs", "Up"),
@@ -13,29 +15,58 @@ moodStarDummyData <- data.frame(
   disgust = c(33, 22, 10)
 )
 
-shinyServer(function(input, output) {
-  # Prepare a dummy dataset
-  dataset <- mtcars %>%
-    tibble::rownames_to_column() %>%
-    dplyr::transmute(
-      Movie = rowname,
-      Genre = cyl,
-      x = wt - mean(wt),
-      y = mpg - mean(mpg)
-    )
+# Load processed screenplays data
+folder.data <- "../100_Data"
+folder.data.processed <- file.path(folder.data, "120_Processed_Data")
 
+screenplayMoodProb.movieRotated <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "901_screenplayMoodProb.movieRotated.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
+screenplayMoodProb.characterRotated <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "902_screenplayMoodProb.characterRotated.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
+shinyServer(function(input, output) {
   # Start the server for the movieMoodLandscape module
   movieMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "movieMoodLandscape",
-    dataset
+    screenplayMoodProb.movieRotated,
+    xCol = "PC1",
+    yCol = "PC2",
+    searchHighlightCol = "movie",
+    text = ~paste(
+      "<b>", movie, "</b>",
+      "<br>Word Count: ", tokenCount,
+      "<br>Character Count: ", characterCount,
+      "<br>Genres: ", genreList
+    )
   )
 
   # And for characters. TODO: bring in real datasets and enable cross filtering
   shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
-    movieMoodLandscape$brushedPoints
+    dataset,
+    xCol = "x",
+    yCol = "y",
+    searchHighlightCol = "Movie",
+    text = ~paste(
+      'Character: ', x,
+      '</br>Movie: ', x,
+      '</br>Word Count: ', x
+    )
   )
   
   # Start the server for the movies mood star module
