@@ -153,7 +153,8 @@ shinyServer(function(input, output) {
     "movieMoodStar",
     movieMoodStarData,
     nameCol = "movie",
-    moodCols = moodCols
+    moodCols = moodCols,
+    rLim = 0.15
   )
   
   characterMoodStarData <- shiny::reactive({
@@ -171,6 +172,7 @@ shinyServer(function(input, output) {
     "characterMoodStar",
     characterMoodStarData,
     nameCol = "character",
-    moodCols = moodCols
+    moodCols = moodCols,
+    rLim = NA
   )
 })
