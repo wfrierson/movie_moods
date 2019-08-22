@@ -25,7 +25,14 @@ moodStarUi <- function(id, width, height) {
 #' @param dataset a (reactive) data-frame of values
 #' @param nameCol the column to use as series name
 #' @param moodCols the columns to use for plotting the mood star
-moodStarServer <- function(input, output, session, dataset, nameCol, moodCols) {
+#' @param rLim radius Limit for the visual
+moodStarServer <- function(input,
+                           output,
+                           session,
+                           dataset,
+                           nameCol,
+                           moodCols,
+                           rLim) {
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
       dataset(),
@@ -37,7 +44,7 @@ moodStarServer <- function(input, output, session, dataset, nameCol, moodCols) {
         polar = list(
           radialaxis = list(
             visible = TRUE,
-            range = c(0, 0.15)
+            range = c(0, rLim)
           )
         )
       ) %>%
