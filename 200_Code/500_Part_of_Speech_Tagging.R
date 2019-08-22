@@ -85,7 +85,7 @@ screenplayTagged <- data.table::data.table(
    , pos = treetagOutput@TT.res$wclass
    
 )[
-  # Create column that mimics the part-of-speech labels from the DM++ lexicon
+  # Create part-of-speech column for nouns, adverbs, verbs, and adjectives
   , posLabel := ifelse(
       pos == 'verb', 'v', ifelse(
       pos == 'adverb', 'r', ifelse(

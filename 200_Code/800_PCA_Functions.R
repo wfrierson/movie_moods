@@ -17,12 +17,12 @@ RotateData <- function(newData, prcompOutput) {
   ) %*% prcompOutput$rotation %>% as.data.table
   
   pcs <- prcompOutput$sdev * sqrt(nrow(newDataRot))
-  names(pcs) <- paste0('PC',1:8)
+  names(pcs) <- paste0('PC',seq_along(pcs))
   
   # Scale rotated variables using PCs
   newDataRot[
-    , paste0('PC',1:8) := lapply(
-        paste0('PC',1:8),
+    , (names(pcs)) := lapply(
+        names(pcs),
         function(pc) get(pc) / pcs[pc]
       )
   ]

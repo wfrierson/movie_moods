@@ -91,13 +91,13 @@ GetMovieTranscriptStats <- function(rawTranscript) {
   # E.g., "EXT. TIMES SQUARE"
   filterSettingShort <- CreateRegexFilter(
     token = c('EXT', 'INT'), 
-    filterTemplate = "^%s\\. |^%s | %s\\.| %s "
+    filterTemplate = "^%s\\. |^%s |^%s:| %s\\.| %s | %s:"
   )
   filterSettingLong <- CreateRegexFilter(
     tokenVector = c('INTERIOR', 'EXTERIOR'), 
     filterTemplate = "^%s | %s "
   )
-  filterSettingCombo <- 'INT\\./EXT\\.'
+  filterSettingCombo <- 'INT\\./EXT\\.|EXT\\./INT\\.|INT/EXT|EXT/INT'
   filterSetting <- paste0(
     filterSettingShort, '|'
     , filterSettingLong, '|'
