@@ -78,7 +78,7 @@ SelectCharacters <- function(df, selection) {
   filtered <- head(df, 0)
   
   if (length(selection) > 0) {
-    filtered <-  dplyr::filter(df, character %in% selection)
+    filtered <-  dplyr::filter(df, id %in% selection)
   }
   
   return(filtered)
@@ -100,7 +100,8 @@ shinyServer(function(input, output) {
     filteredMovies,
     xCol = "PC1",
     yCol = "PC2",
-    searchHighlightCol = "movie",
+    searchHighlightCol = "id",
+    searchDisplayCol = 'movie',
     text = ~paste(
       "<b>", movie, "</b>",
       "<br>Word Count: ", tokenCount,
@@ -112,10 +113,10 @@ shinyServer(function(input, output) {
   )
   
   filteredCharacters <- shiny::reactive({
-    shiny::req(movieMoodLandscape$selected)
+    shiny::req(movieMoodLandscape$valueSelected)
     
     screenplayMoodProb.characterRotated %>%
-      dplyr::filter(movie %in% movieMoodLandscape$selected)
+      dplyr::filter(movie %in% movieMoodLandscape$valueSelected)
   })
 
   # And for characters
@@ -125,7 +126,8 @@ shinyServer(function(input, output) {
     filteredCharacters,
     xCol = "PC1",
     yCol = "PC2",
-    searchHighlightCol = "character",
+    searchHighlightCol = "id",
+    searchDisplayCol = 'character',
     text = ~paste(
       'Character: ', character,
       '</br>Movie: ', movie,
@@ -138,11 +140,11 @@ shinyServer(function(input, output) {
   moodCols <- c(
   'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
   'trust'
-)
+  )
   
   movieMoodStarData <- shiny::reactive({
-    shiny::req(movieMoodLandscape$selected)
-    SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
+    shiny::req(movieMoodLandscape$valueSelected)
+    SelectMovies(screenplayMoodscores, movieMoodLandscape$valueSelected)
   })
   
   # Start the server for the movies mood star module
@@ -150,17 +152,18 @@ shinyServer(function(input, output) {
     moodStarServer,
     "movieMoodStar",
     movieMoodStarData,
+    idCol = 'id',
     nameCol = "movie",
     moodCols = paste0(moodCols, 'Percentile'),
     rLim = 1
   )
   
   characterMoodStarData <- shiny::reactive({
-    shiny::req(charactersMoodLandscape$selected)
+    shiny::req(charactersMoodLandscape$idSelected)
     
     SelectCharacters(
       screenplayMoodProb.character,
-      charactersMoodLandscape$selected
+      charactersMoodLandscape$idSelected
     )
   })
   
@@ -169,6 +172,7 @@ shinyServer(function(input, output) {
     moodStarServer,
     "characterMoodStar",
     characterMoodStarData,
+    idCol = 'id',
     nameCol = "character",
     moodCols = paste0(moodCols, 'Percentile'),
     rLim = 1
