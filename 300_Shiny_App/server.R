@@ -134,6 +134,6 @@ shinyServer(function(input, output) {
     "movieMoodStar",
     movieMoodStarData,
     nameCol = "movie",
-    moodCols = moodCols
+    moodCols = paste0(moodCols, 'Percentile')
   )
 })
