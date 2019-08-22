@@ -37,40 +37,70 @@ file.remove(path.screenplays)
 unlink(file.path(folder.data.raw, '__MACOSX'), recursive = TRUE)
 
 ###############################################################################
-# DEPECHEMOOD++
+# NRC EMOTION LEXICON
 #
-# The following section downloads the DepecheMood++ emotional lexicon.
-#
-# Araque, O., Gatti, L., Staiano, J., and Guerini, M. (2018) 
-# "DepecheMood++: a Bilingual Emotion Lexicon Built Through Simple Yet Powerful 
-# Techniques". ArXiv preprint is available at https://arxiv.org/abs/1810.03660
+# The following section downloads the NRC emotinal lexicon and prepares it for
+# use in sentiment analysis.
 
-name.DMpp <- 'DepecheMood_v2.0.zip'
-path.DMpp <- file.path(folder.data.raw, name.DMpp)
-file.DMpp <- file.path(
-  'DepecheMood++',
-  'DepecheMood_english_lemmapos_full.tsv'
+# Download Emotion Lexicon dataset from NRC website
+url.nrc.sentiment <- 'http://sentiment.nrc.ca/lexicons-for-research'
+name.emolex <- 'NRC-Emotion-Lexicon.zip'
+file.emolex <- file.path(
+  'NRC-Emotion-Lexicon-v0.92',
+  'NRC-Emotion-Lexicon-Wordlevel-v0.92.txt'
 )
 
+destfile.emolex <- file.path(folder.data.raw, name.emolex)
 
-if (!file.exists(path.DMpp)) {
-  url.DMpp <- file.path(
-    'https://github.com/marcoguerini/DepecheMood/releases/download/v2.0'
-    , name.DMpp
-  )
-  download.file(url.DMpp, path.DMpp)
+# Download the dataset ZIP file if we haven't done so already
+if (!file.exists(destfile.emolex)) {
+  url.emolex <- file.path(url.nrc.sentiment, name.emolex)
+  download.file(url.emolex, destfile.emolex)
 }
 
-# Extract the relevant emotion lexicon
+# Extract the word-level emotion lexicon with word associations
 unzip(
-  path.DMpp,
-  files = file.DMpp,
+  destfile.emolex,
+  files = file.emolex,
   overwrite = FALSE,
   exdir = folder.data.raw
 )
 
-# Remove the zip file
-file.remove(path.DMpp)
+emolex <- data.table::fread(
+  file.path(folder.data.raw, file.emolex),
+  sep = '\t',
+  header = FALSE,
+  skip = 1,
+  colClasses = c(
+    'character',
+    'factor',
+    'logical'
+  ),
+  col.names = c(
+    'Term',
+    'AffectCategory',
+    'AssociationFlag'
+  ),
+  logical01 = TRUE
+)
+
+# Build a data dictionary suitable for sentiment analysis
+dictionary.NRC <- data.table::dcast(
+  emolex,
+  Term ~ AffectCategory,
+  value.var = 'AssociationFlag'
+)
+
+# Export NRC emotion lexicon
+data.table::fwrite(
+  dictionary.NRC
+  , file.path(folder.data.processed, '101_dictionary.NRC.csv')
+  , quote = FALSE
+  , row.names = FALSE
+)
+
+# Remove zip file
+file.remove(file.path(folder.data.raw, name.emolex))
 
 ###############################################################################
 # IMDB DATA

@@ -60,15 +60,15 @@ screenplayMoodProb.sceneCharacter <- data.table::fread(
 ###############################################################################
 # PERFORM PCA ON MOVIE-LEVEL MOOD AGGREGATIONS
 
-# Create vector of DM++ moods and column names
-moods.DMpp <- c(
-  'afraid', 'amused', 'angry', 'annoyed', 'dont_care', 'happy', 'inspired',
-  'sad'
+# Create vector of NRC moods
+moods.NRC <- c(
+  'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
+  'trust'
 )
 
 # Perform PCA at movie-level
 pcaMovie <- prcomp(
-  screenplayMoodProb.movie[, mget(moods.DMpp)],
+  screenplayMoodProb.movie[, mget(moods.NRC)],
   center = TRUE,
   scale. = FALSE,
   retx = TRUE
