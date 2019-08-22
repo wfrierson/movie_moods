@@ -35,6 +35,7 @@ moodLandscapeServer <- function(input,
                                 xCol,
                                 yCol,
                                 searchHighlightCol,
+                                searchDisplayCol,
                                 text,
                                 searchResultName,
                                 xlim,
@@ -43,10 +44,13 @@ moodLandscapeServer <- function(input,
   
   # Dynamically render the selectizeInput UI
   output$searchUi <- shiny::renderUI({ 
+    searchChoices <- dataset()[[searchHighlightCol]]
+    names(searchChoices) <- dataset()[[searchDisplayCol]]
+    
     shiny::selectizeInput(
       ns("search"),
       "Search:",
-      choices = dataset()[[searchHighlightCol]],
+      choices = searchChoices,
       selected = input$search,
       multiple = TRUE,
       options = list(placeholder = "Choose up to 3", maxItems = 3)
@@ -124,7 +128,12 @@ moodLandscapeServer <- function(input,
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
   observe({
-    vals$selected <- input$search
+    vals$idSelected <- input$search
+    vals$valueSelected <- (dataset() %>% 
+                            filter(
+                              (!!as.name(searchHighlightCol)) %in% input$search
+                            ) %>% 
+                             select_at(searchDisplayCol))[[searchDisplayCol]]
   })
 
   return(vals)
