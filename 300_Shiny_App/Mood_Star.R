@@ -37,7 +37,7 @@ moodStarServer <- function(input, output, session, dataset, nameCol, moodCols) {
         polar = list(
           radialaxis = list(
             visible = TRUE,
-            range = c(0, 0.15)
+            range = c(0, 1)
           )
         )
       ) %>%
