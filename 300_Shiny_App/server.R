@@ -106,7 +106,9 @@ shinyServer(function(input, output) {
       "<br>Word Count: ", tokenCount,
       "<br>Character Count: ", characterCount,
       "<br>Genres: ", genreList
-    )
+    ),
+    xlim = c(-0.130182, 0.178242),
+    ylim = c(-0.194214, 0.169695)
   )
   
   filteredCharacters <- shiny::reactive({
@@ -128,7 +130,9 @@ shinyServer(function(input, output) {
       'Character: ', character,
       '</br>Movie: ', movie,
       '</br>Word Count: ', tokenCount
-    )
+    ),
+    xlim = c(-0.130182, 0.178242),
+    ylim = c(-0.194214, 0.169695)
   )
 
   moodCols <- c(
@@ -173,6 +177,6 @@ shinyServer(function(input, output) {
     characterMoodStarData,
     nameCol = "character",
     moodCols = paste0(moodCols, 'Percentile'),
-    rLim = NA
+    rLim = 1
   )
 })
