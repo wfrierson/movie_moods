@@ -45,11 +45,11 @@ moodLandscapeServer <- function(input,
   output$searchUi <- shiny::renderUI({ 
     shiny::selectizeInput(
       ns("search"),
-      "Search by Title",
-      choices = c("Select up to 5" = "", dataset()[[searchHighlightCol]]),
+      "Search:",
+      choices = dataset()[[searchHighlightCol]],
       selected = input$search,
       multiple = TRUE,
-      options = list(maxItems = 5)
+      options = list(placeholder = "Choose up to 3", maxItems = 3)
     )
   })
   
