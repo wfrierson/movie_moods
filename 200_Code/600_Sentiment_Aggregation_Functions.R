@@ -62,12 +62,31 @@ AggregateMoods <- function(
     function(mood) ecdf(moodTableAgg[[mood]])
   )
   
+  moodLevelPercentiles <- paste0(moodLevels, 'Percentile')
+  
   moodTableAgg[
-    , paste0(moodLevels, 'Percentile') := lapply(
+    , (moodLevelPercentiles) := lapply(
         seq_along(moodLevels),
         function(moodIndex) mood.ecdf[[moodIndex]](get(moodLevels[moodIndex]))
     )
   ]
+  
+  moodTableAgg[
+    , id := 1:.N
+  ]
+  
+  setcolorder(
+    moodTableAgg,
+    c(
+      'id',
+      aggregateString,
+      'tokenCount',
+      'characterCount',
+      'sectionCount',
+      moodLevels,
+      moodLevelPercentiles
+    )
+  )
   
   return(moodTableAgg)
 }
