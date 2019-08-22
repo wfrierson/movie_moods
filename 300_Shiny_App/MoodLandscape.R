@@ -36,7 +36,9 @@ moodLandscapeServer <- function(input,
                                 yCol,
                                 searchHighlightCol,
                                 text,
-                                searchResultName) {
+                                searchResultName,
+                                xlim,
+                                ylim) {
   ns = session$ns
   
   # Dynamically render the selectizeInput UI
@@ -52,9 +54,16 @@ moodLandscapeServer <- function(input,
   })
   
   # Render the plot UI
-  cleanAxis <- list(
+  xAxisOptions <- list(
     title = NA,
-    showticklabels = FALSE
+    showticklabels = FALSE,
+    range = xlim
+  )
+  
+  yAxisOptions <- list(
+    title = NA,
+    showticklabels = FALSE,
+    range = ylim
   )
 
   plot_obj <- shiny::reactive({
@@ -71,7 +80,7 @@ moodLandscapeServer <- function(input,
         mode = "markers",
         text = text
       ) %>%
-        plotly::layout(xaxis = cleanAxis, yaxis = cleanAxis) %>%
+        plotly::layout(xaxis = xAxisOptions, yaxis = yAxisOptions) %>%
         plotly::config(displayModeBar = FALSE)
     } else if (sum(selected) > 0) {
       p <- plotly::plot_ly() %>%
@@ -100,8 +109,8 @@ moodLandscapeServer <- function(input,
           )
         ) %>% 
         plotly::layout(
-          xaxis = cleanAxis,
-          yaxis = cleanAxis,
+          xaxis = xAxisOptions,
+          yaxis = yAxisOptions,
           showlegend = FALSE
         ) %>%
         plotly::config(displayModeBar = FALSE)
