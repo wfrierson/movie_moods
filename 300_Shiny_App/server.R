@@ -143,6 +143,7 @@ shinyServer(function(input, output) {
   )
   
   movieMoodStarData <- shiny::reactive({
+    shiny::req(movieMoodLandscape$selected)
     SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
   })
   
@@ -156,6 +157,8 @@ shinyServer(function(input, output) {
   )
   
   characterMoodStarData <- shiny::reactive({
+    shiny::req(charactersMoodLandscape$selected)
+    
     SelectCharacters(
       screenplayMoodProb.character,
       charactersMoodLandscape$selected
