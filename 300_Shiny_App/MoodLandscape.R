@@ -22,20 +22,6 @@ moodLandscapeUi <- function(id, width, height) {
 
 
 
-#' Mood Landscape plot module debug user interface for interactions
-#'
-#' @param id, character used to specify namespace, see \code{shiny::\link[shiny]{NS}}
-#'
-#' @return a \code{shiny::\link[shiny]{tagList}} containing UI elements
-moodLandscapeIxDebugUi <- function(id) {
-  ns <- shiny::NS(id)
-
-  elements <- shiny::tagList(
-  )
-  
-  return(elements)
-}
-
 #' Mood Landscape plot module server-side processing
 #'
 #' @param input, output, session standard \code{shiny} boilerplate

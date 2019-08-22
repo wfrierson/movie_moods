@@ -35,6 +35,15 @@ screenplayMoodProb.characterRotated <- data.table::fread(
   quote = ""
 )
 
+screenplayMoodProb.character <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    "703_screenplayMoodProb.character.csv"
+  ),
+  sep = "|",
+  quote = ""
+)
+
 SelectMovies <- function(df, selection) {
   filtered <- head(df, 0)
   
@@ -62,6 +71,16 @@ FilterMovies <- function(df, genres, numCharacters) {
     characterCount >= numCharacters[1] & characterCount <= numCharacters[2]
   )
 
+  return(filtered)
+}
+
+SelectCharacters <- function(df, selection) {
+  filtered <- head(df, 0)
+  
+  if (length(selection) > 0) {
+    filtered <-  dplyr::filter(df, character %in% selection)
+  }
+  
   return(filtered)
 }
 
@@ -98,7 +117,7 @@ shinyServer(function(input, output) {
   })
 
   # And for characters
-  shiny::callModule(
+  charactersMoodLandscape <- shiny::callModule(
     moodLandscapeServer,
     "charactersMoodLandscape",
     filteredCharacters,
@@ -112,7 +131,6 @@ shinyServer(function(input, output) {
     )
   )
 
-  # Start the server for mood stars
   moodCols <- c(
     "afraid",
     "amused",
@@ -125,6 +143,7 @@ shinyServer(function(input, output) {
   )
   
   movieMoodStarData <- shiny::reactive({
+    shiny::req(movieMoodLandscape$selected)
     SelectMovies(screenplayMoodscores, movieMoodLandscape$selected)
   })
   
@@ -134,6 +153,24 @@ shinyServer(function(input, output) {
     "movieMoodStar",
     movieMoodStarData,
     nameCol = "movie",
+    moodCols = moodCols
+  )
+  
+  characterMoodStarData <- shiny::reactive({
+    shiny::req(charactersMoodLandscape$selected)
+    
+    SelectCharacters(
+      screenplayMoodProb.character,
+      charactersMoodLandscape$selected
+    )
+  })
+  
+  # Start the server for the characters mood star module
+  shiny::callModule(
+    moodStarServer,
+    "characterMoodStar",
+    characterMoodStarData,
+    nameCol = "character",
     moodCols = moodCols
   )
 })
