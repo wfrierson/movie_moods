@@ -136,15 +136,9 @@ shinyServer(function(input, output) {
   )
 
   moodCols <- c(
-    "afraid",
-    "amused",
-    "angry",
-    "annoyed",
-    "dont_care",
-    "happy",
-    "inspired",
-    "sad"
-  )
+  'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
+  'trust'
+)
   
   movieMoodStarData <- shiny::reactive({
     shiny::req(movieMoodLandscape$selected)
