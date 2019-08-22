@@ -30,7 +30,7 @@ screenplayMoodProb.movie <- data.table::fread(
   stringsAsFactors = FALSE,
   quote = "",
   sep = '|',
-  key = c('movie')
+  key = c('id', 'movie')
 )
 
 screenplayMoodProb.character <- data.table::fread(
@@ -38,7 +38,7 @@ screenplayMoodProb.character <- data.table::fread(
   stringsAsFactors = FALSE,
   quote = "",
   sep = '|',
-  key = c('movie', 'character')
+  key = c('id', 'movie', 'character')
 )
 
 screenplayMoodProb.scene <- data.table::fread(
@@ -46,7 +46,7 @@ screenplayMoodProb.scene <- data.table::fread(
   stringsAsFactors = FALSE,
   quote = "",
   sep = '|',
-  key = c('movie', 'sceneNumber')
+  key = c('id', 'movie', 'sceneNumber')
 )
 
 screenplayMoodProb.sceneCharacter <- data.table::fread(
@@ -54,7 +54,7 @@ screenplayMoodProb.sceneCharacter <- data.table::fread(
   stringsAsFactors = FALSE,
   quote = "",
   sep = '|',
-  key = c('movie', 'sceneNumber', 'character')
+  key = c('id', 'movie', 'sceneNumber', 'character')
 )
 
 ###############################################################################
