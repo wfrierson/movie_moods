@@ -45,7 +45,7 @@ AggregateMoods <- function(
     'sad'
   )
   
-  copy(moodTable)[
+  moodTableAgg <- copy(moodTable)[
     # Calculate token frequency to use when aggregating moods
     , tokenFreq := .N
     , by = c(aggregateString, 'tokenPOS')
@@ -60,7 +60,7 @@ AggregateMoods <- function(
   ][
     # Aggregate mood probabilities to movie-level via method described in
     # getTokenMoodContribution function
-    , (moods.DMpp) := lapply(
+    , (moodLevels) := lapply(
         .SD,
         function(mood) sum(GetTokenMoodContribution(mood, tokenFreq))
       )
@@ -86,7 +86,21 @@ AggregateMoods <- function(
     , totalProbSum := Reduce(`+`, .SD)
     , .SDcol = moodLevels
   ][
-    , (moods.DMpp) := lapply(.SD, function(mood) mood / totalProbSum)
+    , (moodLevels) := lapply(.SD, function(mood) mood / totalProbSum)
     , .SDcol = moodLevels
   ]
+  
+  mood.ecdf <- lapply(
+    moodLevels,
+    function(mood) ecdf(moodTableAgg[[mood]])
+  )
+  
+  moodTableAgg[
+    , paste0(moodLevels, 'Percentile') := lapply(
+        seq_along(moodLevels),
+        function(moodIndex) mood.ecdf[[moodIndex]](get(moodLevels[moodIndex]))
+    )
+  ]
+  
+  return(moodTableAgg)
 }
