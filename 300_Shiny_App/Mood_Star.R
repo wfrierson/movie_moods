@@ -30,6 +30,7 @@ moodStarServer <- function(input,
                            output,
                            session,
                            dataset,
+                           idCol,
                            nameCol,
                            moodCols,
                            rLim) {
@@ -50,15 +51,16 @@ moodStarServer <- function(input,
       ) %>%
       plotly::config(displayModeBar = FALSE)
     
+    ids <- dataset()[[idCol]]
     names <- dataset()[[nameCol]]
-    for (name in names) {
+    for (index in seq_along(ids)) {
       row <- dataset() %>%
-        dplyr::filter(get(nameCol) == name)
+        dplyr::filter(get(idCol) == ids[index])
       p <- plotly::add_trace(
         p,
         r = abs(array(row[,moodCols])),
         theta = moodCols,
-        name = name,
+        name = names[index],
         showlegend = FALSE
       )
     }
