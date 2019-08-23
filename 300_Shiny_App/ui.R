@@ -1,7 +1,6 @@
 library(shiny)
 library(shinydashboard)
 library(shinythemes)
-library(shinyWidgets)
 source("MoodLandscape.R")
 source("Mood_Star.R")
 
@@ -29,7 +28,13 @@ shinyUI(
   fluidPage(
     theme = shinythemes::shinytheme("darkly"),
 
-    shinyWidgets::useShinydashboard(),
+    tags$head(
+      tags$style(HTML("
+      div.plotly svg.main-svg {
+        border-radius: 4px;
+      }
+    "))
+    ),
 
     titlePanel("Explore Movie by Moods"),
 

@@ -41,8 +41,9 @@ moodLandscapeServer <- function(input,
                                 xlim,
                                 ylim) {
   ns = session$ns
+  MAX_SELECT = 3
   
-  # Dynamically render the selectizeInput UI
+  # Dynamically render the selectizeInput UI if dataset changes
   output$searchUi <- shiny::renderUI({ 
     searchChoices <- dataset()[[searchHighlightCol]]
     names(searchChoices) <- dataset()[[searchDisplayCol]]
@@ -51,9 +52,12 @@ moodLandscapeServer <- function(input,
       ns("search"),
       "Search:",
       choices = searchChoices,
-      selected = input$search,
+      selected = isolate(input$search),
       multiple = TRUE,
-      options = list(placeholder = "Choose up to 3", maxItems = 3)
+      options = list(
+        placeholder = paste("Choose up to", MAX_SELECT),
+        maxItems = MAX_SELECT
+      )
     )
   })
   
@@ -89,12 +93,13 @@ moodLandscapeServer <- function(input,
         y = ~get(yCol),
         type = "scatter",
         mode = "markers",
-        text = text
-      ) %>%
-        plotly::layout(xaxis = xAxisOptions, yaxis = yAxisOptions) %>%
-        plotly::config(displayModeBar = FALSE)
+        text = text,
+        hoverinfo = "text",
+        source = ns("A"),
+        customdata = ~get(searchHighlightCol)
+      )
     } else if (sum(selected) > 0) {
-      p <- plotly::plot_ly() %>%
+      p <- plotly::plot_ly(source = ns("A")) %>%
         add_trace(
           data = dataset() %>% 
             filter((!!as.name(searchHighlightCol)) %in% input$search),
@@ -103,9 +108,11 @@ moodLandscapeServer <- function(input,
           type = "scatter",
           mode = "markers",
           text = text,
+          hoverinfo = "text",
           marker = list(
             color = 'rgb(31, 119, 180)'
-          )
+          ),
+          customdata = ~id
       ) %>%
         add_trace(
           data = dataset() %>% 
@@ -115,17 +122,23 @@ moodLandscapeServer <- function(input,
           type = "scatter",
           mode = "markers",
           text = text,
+          hoverinfo = "text",
           marker = list(
             color = 'rgba(31, 119, 180, 0.1)'
-          )
-        ) %>% 
-        plotly::layout(
-          xaxis = xAxisOptions,
-          yaxis = yAxisOptions,
-          showlegend = FALSE
-        ) %>%
-        plotly::config(displayModeBar = FALSE)
+          ),
+          customdata = ~id
+        )
     }
+    
+    p <- p %>% 
+      plotly::layout(
+        margin = list(t = 1, l = 1, b = 1, r = 1),
+        xaxis = xAxisOptions,
+        yaxis = yAxisOptions,
+        showlegend = FALSE,
+        plot_bgcolor = "F0F0F0"
+      ) %>%
+      plotly::config(displayModeBar = FALSE)
 
     return(p)
   })
@@ -134,13 +147,37 @@ moodLandscapeServer <- function(input,
   
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
-  observe({
+  shiny::observe({
     vals$idSelected <- input$search
     vals$valueSelected <- (dataset() %>% 
                             filter(
                               (!!as.name(searchHighlightCol)) %in% input$search
                             ) %>% 
                              select_at(searchDisplayCol))[[searchDisplayCol]]
+  })
+
+  shiny::observe({
+    clickData <- plotly::event_data("plotly_click", source = ns("A"))
+    if (is.null(clickData)) {
+      return(NULL)
+    }
+
+    output$searchUi <- shiny::renderUI({ 
+      searchChoices <- dataset()[[searchHighlightCol]]
+      names(searchChoices) <- dataset()[[searchDisplayCol]]
+      
+      shiny::selectizeInput(
+        ns("search"),
+        "Search:",
+        choices = searchChoices,
+        selected = c(clickData$customdata, isolate(vals$idSelected)),
+        multiple = TRUE,
+        options = list(
+          placeholder = paste("Choose up to", MAX_SELECT),
+          maxItems = MAX_SELECT
+        )
+      )
+    })
   })
 
   return(vals)

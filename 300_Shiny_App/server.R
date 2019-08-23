@@ -102,14 +102,14 @@ shinyServer(function(input, output) {
     yCol = "PC2",
     searchHighlightCol = "id",
     searchDisplayCol = 'movie',
-    text = ~paste(
+    text = ~paste0(
       "<b>", movie, "</b>",
       "<br>Word Count: ", tokenCount,
       "<br>Character Count: ", characterCount,
       "<br>Genres: ", genreList
     ),
-    xlim = c(-0.130182, 0.178242),
-    ylim = c(-0.194214, 0.169695)
+    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
+    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
   )
   
   filteredCharacters <- shiny::reactive({
@@ -126,13 +126,13 @@ shinyServer(function(input, output) {
     yCol = "PC2",
     searchHighlightCol = "id",
     searchDisplayCol = 'character',
-    text = ~paste(
-      'Character: ', character,
-      '</br>Movie: ', movie,
-      '</br>Word Count: ', tokenCount
+    text = ~paste0(
+      "<b>", character, "</b>",
+      "<br>Movie: ", movie,
+      "<br>Word Count: ", tokenCount
     ),
-    xlim = c(-0.130182, 0.178242),
-    ylim = c(-0.194214, 0.169695)
+    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
+    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
   )
 
   moodCols <- c(

@@ -58,11 +58,13 @@ moodStarServer <- function(input,
       mode = "markers"
     ) %>%
       plotly::layout(
+        margin = list(l = 0, r = 0),
         polar = list(
           radialaxis = list(
             visible = FALSE,
             range = c(0, rLim)
-          )
+          ),
+          plot_bgcolor = "F0F0F0"
         )
       ) %>%
       plotly::config(displayModeBar = FALSE)
@@ -77,7 +79,9 @@ moodStarServer <- function(input,
         r = abs(array(row[,moodCols])),
         theta = moodLabels,
         name = names[index],
-        showlegend = FALSE
+        showlegend = FALSE,
+        hoverinfo = "text",
+        hovertemplate = "%{theta}: %{r:.2f}"
       )
     }
 
