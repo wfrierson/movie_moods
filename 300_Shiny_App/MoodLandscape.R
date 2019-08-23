@@ -82,7 +82,8 @@ moodLandscapeServer <- function(input,
         y = ~get(yCol),
         type = "scatter",
         mode = "markers",
-        text = text
+        text = text,
+        hoverinfo = "text"
       )
     } else if (sum(selected) > 0) {
       p <- plotly::plot_ly() %>%
@@ -94,6 +95,7 @@ moodLandscapeServer <- function(input,
           type = "scatter",
           mode = "markers",
           text = text,
+          hoverinfo = "text",
           marker = list(
             color = 'rgb(31, 119, 180)'
           )
@@ -106,6 +108,7 @@ moodLandscapeServer <- function(input,
           type = "scatter",
           mode = "markers",
           text = text,
+          hoverinfo = "text",
           marker = list(
             color = 'rgba(31, 119, 180, 0.1)'
           )
