@@ -40,6 +40,17 @@ moodStarServer <- function(input,
   }
 
   plot_obj <- shiny::reactive({
+    shiny::validate(
+      shiny::need(
+        nrow(dataset()) > 0,
+        paste0(
+          "Please select at least 1 ", nameCol,
+          " to show the radar plot of aggregated moods for the selected ",
+          nameCol, '(s).'
+        )
+      )
+    )
+    
     p <- plotly::plot_ly(
       dataset(),
       type = "scatterpolar",
