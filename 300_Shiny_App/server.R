@@ -113,8 +113,6 @@ shinyServer(function(input, output) {
   )
   
   filteredCharacters <- shiny::reactive({
-    shiny::req(movieMoodLandscape$valueSelected)
-    
     screenplayMoodProb.characterRotated %>%
       dplyr::filter(movie %in% movieMoodLandscape$valueSelected)
   })
@@ -145,7 +143,6 @@ shinyServer(function(input, output) {
   moodLabels <- tools::toTitleCase(moodCols)
   
   movieMoodStarData <- shiny::reactive({
-    shiny::req(movieMoodLandscape$valueSelected)
     SelectMovies(screenplayMoodProb.movie, movieMoodLandscape$valueSelected)
   })
   
@@ -162,8 +159,6 @@ shinyServer(function(input, output) {
   )
   
   characterMoodStarData <- shiny::reactive({
-    shiny::req(charactersMoodLandscape$idSelected)
-    
     SelectCharacters(
       screenplayMoodProb.character,
       charactersMoodLandscape$idSelected
