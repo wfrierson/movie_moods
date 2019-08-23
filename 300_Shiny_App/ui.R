@@ -1,7 +1,6 @@
 library(shiny)
 library(shinydashboard)
 library(shinythemes)
-library(shinyWidgets)
 source("MoodLandscape.R")
 source("Mood_Star.R")
 
@@ -28,8 +27,6 @@ screenplayMoodscores <- data.table::fread(
 shinyUI(
   fluidPage(
     theme = shinythemes::shinytheme("darkly"),
-
-    shinyWidgets::useShinydashboard(),
 
     titlePanel("Explore Movie by Moods"),
 
