@@ -44,15 +44,20 @@ moodLandscapeServer <- function(input,
   MAX_SELECT = 3
   
   # Dynamically render the selectizeInput UI if dataset changes
-  output$searchUi <- shiny::renderUI({ 
-    searchChoices <- dataset()[[searchHighlightCol]]
-    names(searchChoices) <- dataset()[[searchDisplayCol]]
+  output$searchUi <- shiny::renderUI({
+    data <- dataset()
+    searchChoices <- data[[searchHighlightCol]]
+    names(searchChoices) <- data[[searchDisplayCol]]
     
+    # Remove selected movie if no longer in dataset
+    existingSelection <- shiny::isolate(input$search)
+    newSelection <- existingSelection[existingSelection %in% searchChoices]
+
     shiny::selectizeInput(
       ns("search"),
       "Search:",
       choices = searchChoices,
-      selected = isolate(input$search),
+      selected = newSelection,
       multiple = TRUE,
       options = list(
         placeholder = paste("Choose up to", MAX_SELECT),
@@ -162,15 +167,29 @@ moodLandscapeServer <- function(input,
       return(NULL)
     }
 
-    output$searchUi <- shiny::renderUI({ 
-      searchChoices <- dataset()[[searchHighlightCol]]
-      names(searchChoices) <- dataset()[[searchDisplayCol]]
+    output$searchUi <- shiny::renderUI({
+      data <- dataset()
+      searchChoices <- data[[searchHighlightCol]]
+      names(searchChoices) <- data[[searchDisplayCol]]
+      
+      # Remove a selected movie if not in dataset
+      existingSelection <- shiny::isolate(input$search)
+      newSelection <- existingSelection[existingSelection %in% searchChoices]
+
+      if (clickData$customdata %in% existingSelection) {
+        # If the clicked point was already selected
+        newSelection <- newSelection[newSelection != clickData$customdata]
+      } else {
+        # Otherwise, add it.
+        newSelection <- c(clickData$customdata, newSelection)
+      }
+
       
       shiny::selectizeInput(
         ns("search"),
         "Search:",
         choices = searchChoices,
-        selected = c(clickData$customdata, isolate(vals$idSelected)),
+        selected = newSelection,
         multiple = TRUE,
         options = list(
           placeholder = paste("Choose up to", MAX_SELECT),
