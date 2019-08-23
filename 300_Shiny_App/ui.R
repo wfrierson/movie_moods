@@ -31,7 +31,7 @@ shinyUI(
 
     shinyWidgets::useShinydashboard(),
 
-    titlePanel("Movie Moods"),
+    titlePanel("Explore Movie by Moods"),
 
     sidebarLayout(
 
@@ -54,7 +54,7 @@ shinyUI(
       ),
 
       mainPanel(
-        shiny::fluidRow(h3("Movies")),
+        shiny::fluidRow(h3("Choose movies to compare")),
         fluidRow(
           shiny::column(
             width = 6,
@@ -74,7 +74,7 @@ shinyUI(
           )
         ),
         hr(),
-        shiny::fluidRow(h3("Characters")),
+        shiny::fluidRow(h3("Choose characters to compare")),
         fluidRow(
           shiny::column(
             width = 6,
