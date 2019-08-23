@@ -42,7 +42,7 @@ moodLandscapeServer <- function(input,
                                 ylim) {
   ns = session$ns
   
-  # Dynamically render the selectizeInput UI
+  # Dynamically render the selectizeInput UI if dataset changes
   output$searchUi <- shiny::renderUI({ 
     searchChoices <- dataset()[[searchHighlightCol]]
     names(searchChoices) <- dataset()[[searchDisplayCol]]
@@ -51,7 +51,7 @@ moodLandscapeServer <- function(input,
       ns("search"),
       "Search:",
       choices = searchChoices,
-      selected = input$search,
+      selected = isolate(input$search),
       multiple = TRUE,
       options = list(placeholder = "Choose up to 3", maxItems = 3)
     )
@@ -141,11 +141,24 @@ moodLandscapeServer <- function(input,
                             ) %>% 
                              select_at(searchDisplayCol))[[searchDisplayCol]]
   })
-  
+
   shiny::observe({
     clickData <- plotly::event_data("plotly_click", source = ns("A"))
     clickedItem <- dataset()[clickData$pointNumber + 1, 'id']
-    print(c(clickedItem, input$search))
+
+    output$searchUi <- shiny::renderUI({ 
+      searchChoices <- dataset()[[searchHighlightCol]]
+      names(searchChoices) <- dataset()[[searchDisplayCol]]
+      
+      shiny::selectizeInput(
+        ns("search"),
+        "Search:",
+        choices = searchChoices,
+        selected = isolate(c(clickedItem, input$search)),
+        multiple = TRUE,
+        options = list(placeholder = "Choose up to 3", maxItems = 3)
+      )
+    })
   })
 
   return(vals)
