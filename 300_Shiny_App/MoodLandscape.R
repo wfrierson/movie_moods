@@ -41,6 +41,7 @@ moodLandscapeServer <- function(input,
                                 xlim,
                                 ylim) {
   ns = session$ns
+  MAX_SELECT = 3
   
   # Dynamically render the selectizeInput UI if dataset changes
   output$searchUi <- shiny::renderUI({ 
@@ -53,7 +54,10 @@ moodLandscapeServer <- function(input,
       choices = searchChoices,
       selected = isolate(input$search),
       multiple = TRUE,
-      options = list(placeholder = "Choose up to 3", maxItems = 3)
+      options = list(
+        placeholder = paste("Choose up to", MAX_SELECT),
+        maxItems = MAX_SELECT
+      )
     )
   })
   
@@ -84,7 +88,8 @@ moodLandscapeServer <- function(input,
         mode = "markers",
         text = text,
         hoverinfo = "text",
-        source = ns("A")
+        source = ns("A"),
+        customdata = ~get(searchHighlightCol)
       )
     } else if (sum(selected) > 0) {
       p <- plotly::plot_ly(source = ns("A")) %>%
@@ -99,7 +104,8 @@ moodLandscapeServer <- function(input,
           hoverinfo = "text",
           marker = list(
             color = 'rgb(31, 119, 180)'
-          )
+          ),
+          customdata = ~id
       ) %>%
         add_trace(
           data = dataset() %>% 
@@ -112,7 +118,8 @@ moodLandscapeServer <- function(input,
           hoverinfo = "text",
           marker = list(
             color = 'rgba(31, 119, 180, 0.1)'
-          )
+          ),
+          customdata = ~id
         )
     }
     
@@ -144,7 +151,9 @@ moodLandscapeServer <- function(input,
 
   shiny::observe({
     clickData <- plotly::event_data("plotly_click", source = ns("A"))
-    clickedItem <- dataset()[clickData$pointNumber + 1, 'id']
+    if (is.null(clickData)) {
+      return(NULL)
+    }
 
     output$searchUi <- shiny::renderUI({ 
       searchChoices <- dataset()[[searchHighlightCol]]
@@ -154,9 +163,12 @@ moodLandscapeServer <- function(input,
         ns("search"),
         "Search:",
         choices = searchChoices,
-        selected = isolate(c(clickedItem, input$search)),
+        selected = c(clickData$customdata, isolate(vals$idSelected)),
         multiple = TRUE,
-        options = list(placeholder = "Choose up to 3", maxItems = 3)
+        options = list(
+          placeholder = paste("Choose up to", MAX_SELECT),
+          maxItems = MAX_SELECT
+        )
       )
     })
   })
