@@ -71,6 +71,13 @@ moodLandscapeServer <- function(input,
   )
 
   plot_obj <- shiny::reactive({
+    shiny::validate(
+      shiny::need(
+        nrow(dataset()) > 0,
+        "Please select at least 1 movie to show the mood space of characters in the selected movie(s)."
+      )
+    )
+    
     selected = sapply(dataset()[[searchHighlightCol]], function(x) {
       return(x %in% input$search)
     })
