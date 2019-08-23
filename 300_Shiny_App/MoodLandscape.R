@@ -145,19 +145,7 @@ moodLandscapeServer <- function(input,
   shiny::observe({
     clickData <- plotly::event_data("plotly_click", source = ns("A"))
     clickedItem <- dataset()[clickData$pointNumber + 1, 'id']
-    output$searchUi <- shiny::renderUI({ 
-      searchChoices <- dataset()[[searchHighlightCol]]
-      names(searchChoices) <- dataset()[[searchDisplayCol]]
-      
-      shiny::selectizeInput(
-        ns("search"),
-        "Search:",
-        choices = searchChoices,
-        selected = c(clickedItem, input$search),
-        multiple = TRUE,
-        options = list(placeholder = "Choose up to 3", maxItems = 3)
-      )
-    })
+    print(c(clickedItem, input$search))
   })
 
   return(vals)
