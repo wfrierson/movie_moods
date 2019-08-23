@@ -83,10 +83,11 @@ moodLandscapeServer <- function(input,
         type = "scatter",
         mode = "markers",
         text = text,
-        hoverinfo = "text"
+        hoverinfo = "text",
+        source = ns("A")
       )
     } else if (sum(selected) > 0) {
-      p <- plotly::plot_ly() %>%
+      p <- plotly::plot_ly(source = ns("A")) %>%
         add_trace(
           data = dataset() %>% 
             filter((!!as.name(searchHighlightCol)) %in% input$search),
@@ -132,13 +133,31 @@ moodLandscapeServer <- function(input,
   
   # Return reactiveValues for downstream use
   vals <- reactiveValues()
-  observe({
+  shiny::observe({
     vals$idSelected <- input$search
     vals$valueSelected <- (dataset() %>% 
                             filter(
                               (!!as.name(searchHighlightCol)) %in% input$search
                             ) %>% 
                              select_at(searchDisplayCol))[[searchDisplayCol]]
+  })
+  
+  shiny::observe({
+    clickData <- plotly::event_data("plotly_click", source = ns("A"))
+    clickedItem <- dataset()[clickData$pointNumber + 1, 'id']
+    output$searchUi <- shiny::renderUI({ 
+      searchChoices <- dataset()[[searchHighlightCol]]
+      names(searchChoices) <- dataset()[[searchDisplayCol]]
+      
+      shiny::selectizeInput(
+        ns("search"),
+        "Search:",
+        choices = searchChoices,
+        selected = c(clickedItem, input$search),
+        multiple = TRUE,
+        options = list(placeholder = "Choose up to 3", maxItems = 3)
+      )
+    })
   })
 
   return(vals)
