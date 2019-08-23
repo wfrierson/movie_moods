@@ -62,9 +62,16 @@ screenplayMoodProb <- dictionary.NRC[, mget(c('Term', moods.NRC))][
 
 # Aggregate match rate of tokens from selected screenplays with EmoLex:
 #
-# nrow(screenplayMoodProb) / nrow(screenplayTagged[!is.na(posLabel)])
+# nrow(
+#   dictionary.NRC[, mget(c('Term', moods.NRC))][
+#     screenplayTagged[!is.na(posLabel)]
+#     , on = .(Term)
+#     , nomatch = FALSE
+#   ]
+# ) /
+#   nrow(screenplayTagged[!is.na(posLabel)])
 #
-# 0.5371756
+# 0.5334721
 
 ###############################################################################
 # AGGREGATE MOODS AT DIFFERENT LEVELS
