@@ -83,9 +83,7 @@ moodLandscapeServer <- function(input,
         type = "scatter",
         mode = "markers",
         text = text
-      ) %>%
-        plotly::layout(xaxis = xAxisOptions, yaxis = yAxisOptions) %>%
-        plotly::config(displayModeBar = FALSE)
+      )
     } else if (sum(selected) > 0) {
       p <- plotly::plot_ly() %>%
         add_trace(
@@ -111,14 +109,17 @@ moodLandscapeServer <- function(input,
           marker = list(
             color = 'rgba(31, 119, 180, 0.1)'
           )
-        ) %>% 
-        plotly::layout(
-          xaxis = xAxisOptions,
-          yaxis = yAxisOptions,
-          showlegend = FALSE
-        ) %>%
-        plotly::config(displayModeBar = FALSE)
+        )
     }
+    
+    p <- p %>% 
+      plotly::layout(
+        margin = list(t = 1, l = 1, b = 1, r = 1),
+        xaxis = xAxisOptions,
+        yaxis = yAxisOptions,
+        showlegend = FALSE
+      ) %>%
+      plotly::config(displayModeBar = FALSE)
 
     return(p)
   })

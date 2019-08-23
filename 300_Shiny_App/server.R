@@ -108,8 +108,8 @@ shinyServer(function(input, output) {
       "<br>Character Count: ", characterCount,
       "<br>Genres: ", genreList
     ),
-    xlim = c(-0.130182, 0.178242),
-    ylim = c(-0.194214, 0.169695)
+    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
+    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
   )
   
   filteredCharacters <- shiny::reactive({
@@ -133,8 +133,8 @@ shinyServer(function(input, output) {
       '</br>Movie: ', movie,
       '</br>Word Count: ', tokenCount
     ),
-    xlim = c(-0.130182, 0.178242),
-    ylim = c(-0.194214, 0.169695)
+    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
+    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
   )
 
   moodCols <- c(
