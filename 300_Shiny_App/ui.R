@@ -33,7 +33,7 @@ shinyUI(
       div.plotly svg.main-svg {
         border-radius: 4px;
       }
-    "))
+      "))
     ),
 
     titlePanel("Explore Movie by Moods"),
