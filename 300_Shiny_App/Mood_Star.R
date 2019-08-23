@@ -51,7 +51,8 @@ moodStarServer <- function(input,
           radialaxis = list(
             visible = FALSE,
             range = c(0, rLim)
-          )
+          ),
+          plot_bgcolor = "F0F0F0"
         )
       ) %>%
       plotly::config(displayModeBar = FALSE)

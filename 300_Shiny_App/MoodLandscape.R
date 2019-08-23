@@ -117,7 +117,8 @@ moodLandscapeServer <- function(input,
         margin = list(t = 1, l = 1, b = 1, r = 1),
         xaxis = xAxisOptions,
         yaxis = yAxisOptions,
-        showlegend = FALSE
+        showlegend = FALSE,
+        plot_bgcolor = "F0F0F0"
       ) %>%
       plotly::config(displayModeBar = FALSE)
 
