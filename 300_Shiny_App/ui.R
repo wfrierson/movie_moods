@@ -28,6 +28,14 @@ shinyUI(
   fluidPage(
     theme = shinythemes::shinytheme("darkly"),
 
+    tags$head(
+      tags$style(HTML("
+      div.plotly svg.main-svg {
+        border-radius: 4px;
+      }
+    "))
+    ),
+
     titlePanel("Explore Movie by Moods"),
 
     sidebarLayout(
