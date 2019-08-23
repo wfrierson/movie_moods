@@ -33,7 +33,12 @@ moodStarServer <- function(input,
                            idCol,
                            nameCol,
                            moodCols,
-                           rLim) {
+                           moodLabels = NULL,
+                           rLim = NA) {
+  if (is.null(moodLabels)) {
+    moodLabels <- moodCols
+  }
+
   plot_obj <- shiny::reactive({
     p <- plotly::plot_ly(
       dataset(),
@@ -44,7 +49,7 @@ moodStarServer <- function(input,
       plotly::layout(
         polar = list(
           radialaxis = list(
-            visible = TRUE,
+            visible = FALSE,
             range = c(0, rLim)
           )
         )
@@ -59,7 +64,7 @@ moodStarServer <- function(input,
       p <- plotly::add_trace(
         p,
         r = abs(array(row[,moodCols])),
-        theta = moodCols,
+        theta = moodLabels,
         name = names[index],
         showlegend = FALSE
       )

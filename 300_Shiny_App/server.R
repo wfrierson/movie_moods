@@ -16,7 +16,7 @@ screenplayMoodProb.movieRotated <- data.table::fread(
   quote = ""
 )
 
-screenplayMoodscores <- data.table::fread(
+screenplayMoodProb.movie <- data.table::fread(
   file = file.path(
     folder.data.processed,
     "702_screenplayMoodProb.movie.csv"
@@ -142,9 +142,11 @@ shinyServer(function(input, output) {
   'trust'
   )
   
+  moodLabels <- tools::toTitleCase(moodCols)
+  
   movieMoodStarData <- shiny::reactive({
     shiny::req(movieMoodLandscape$valueSelected)
-    SelectMovies(screenplayMoodscores, movieMoodLandscape$valueSelected)
+    SelectMovies(screenplayMoodProb.movie, movieMoodLandscape$valueSelected)
   })
   
   # Start the server for the movies mood star module
@@ -155,6 +157,7 @@ shinyServer(function(input, output) {
     idCol = 'id',
     nameCol = "movie",
     moodCols = paste0(moodCols, 'Percentile'),
+    moodLabels = moodLabels,
     rLim = 1
   )
   
@@ -175,6 +178,7 @@ shinyServer(function(input, output) {
     idCol = 'id',
     nameCol = "character",
     moodCols = paste0(moodCols, 'Percentile'),
+    moodLabels = moodLabels,
     rLim = 1
   )
 })
