@@ -44,7 +44,7 @@ moodStarServer <- function(input,
       plotly::layout(
         polar = list(
           radialaxis = list(
-            visible = TRUE,
+            visible = FALSE,
             range = c(0, rLim)
           )
         )
