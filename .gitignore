@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# This is the Shiny App release folder
+release
