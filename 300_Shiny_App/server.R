@@ -146,8 +146,8 @@ shinyServer(function(input, output) {
   )
 
   moodCols <- c(
-  'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
-  'trust'
+    'fear', 'trust', 'joy', 'anticipation', 'anger', 'disgust', 'sadness',
+    'surprise'
   )
   
   moodLabels <- tools::toTitleCase(moodCols)
