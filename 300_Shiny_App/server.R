@@ -7,6 +7,8 @@ library(plotly)
 folder.data <- "../100_Data"
 folder.data.processed <- file.path(folder.data, "120_Processed_Data")
 
+# Import data and remove records with fewer than 10 sections.
+# This has the effect of not including very minor characters in the dashboard.
 screenplayMoodProb.movieRotated <- data.table::fread(
   file = file.path(
     folder.data.processed,
@@ -14,7 +16,9 @@ screenplayMoodProb.movieRotated <- data.table::fread(
   ),
   sep = "|",
   quote = ""
-)
+)[
+  sectionCount > 10
+]
 
 screenplayMoodProb.movie <- data.table::fread(
   file = file.path(
@@ -23,7 +27,9 @@ screenplayMoodProb.movie <- data.table::fread(
   ),
   sep = "|",
   quote = ""
-)
+)[
+  sectionCount > 10
+]
 
 
 screenplayMoodProb.characterRotated <- data.table::fread(
@@ -33,7 +39,9 @@ screenplayMoodProb.characterRotated <- data.table::fread(
   ),
   sep = "|",
   quote = ""
-)
+)[
+  sectionCount > 10
+]
 
 screenplayMoodProb.character <- data.table::fread(
   file = file.path(
@@ -42,7 +50,9 @@ screenplayMoodProb.character <- data.table::fread(
   ),
   sep = "|",
   quote = ""
-)
+)[
+  sectionCount > 10
+]
 
 SelectMovies <- function(df, selection) {
   filtered <- head(df, 0)
@@ -136,8 +146,8 @@ shinyServer(function(input, output) {
   )
 
   moodCols <- c(
-  'anger', 'anticipation', 'disgust', 'fear', 'joy', 'sadness', 'surprise',
-  'trust'
+    'fear', 'trust', 'joy', 'anticipation', 'anger', 'disgust', 'sadness',
+    'surprise'
   )
   
   moodLabels <- tools::toTitleCase(moodCols)
