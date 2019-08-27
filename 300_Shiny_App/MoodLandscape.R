@@ -1,4 +1,5 @@
 library(ggplot2)
+library(RColorBrewer)
 
 #' Mood Landscape plot module user interface
 #'
@@ -39,16 +40,18 @@ moodLandscapeServer <- function(input,
                                 text,
                                 searchResultName,
                                 xlim,
-                                ylim) {
+                                ylim,
+                                categoryCol = NULL,
+                                categoryOrder = NULL) {
   ns = session$ns
   MAX_SELECT = 3
-  
+
   # Dynamically render the selectizeInput UI if dataset changes
   output$searchUi <- shiny::renderUI({
     data <- dataset()
     searchChoices <- data[[searchHighlightCol]]
     names(searchChoices) <- data[[searchDisplayCol]]
-    
+
     # Remove selected movie if no longer in dataset
     existingSelection <- shiny::isolate(input$search)
     newSelection <- existingSelection[existingSelection %in% searchChoices]
@@ -65,7 +68,7 @@ moodLandscapeServer <- function(input,
       )
     )
   })
-  
+
   # Render the plot UI
   xAxisOptions <- list(
     title = NA,
@@ -80,20 +83,30 @@ moodLandscapeServer <- function(input,
   )
 
   plot_obj <- shiny::reactive({
+    data = dataset()
+
     shiny::validate(
       shiny::need(
-        nrow(dataset()) > 0,
+        nrow(data) > 0,
         "Please select at least 1 movie to show the mood space of characters in the selected movie(s)."
       )
     )
+
+    if (!is.null(categoryCol)) {
+      categories <- unique(categoryOrder())
+      print(categories)
+      categoryNumber <- rev(seq(categories))
+      names(categoryNumber) <- categories
+      data[[categoryCol]] <- categoryNumber[data[[categoryCol]]]
+    }
     
-    selected = sapply(dataset()[[searchHighlightCol]], function(x) {
+    selected = sapply(data[[searchHighlightCol]], function(x) {
       return(x %in% input$search)
     })
-    
+
     if (sum(selected) == 0) {
       p <- plotly::plot_ly(
-        data = dataset(),
+        data = data,
         x = ~get(xCol),
         y = ~get(yCol),
         type = "scatter",
@@ -101,12 +114,14 @@ moodLandscapeServer <- function(input,
         text = text,
         hoverinfo = "text",
         source = ns("A"),
-        customdata = ~get(searchHighlightCol)
+        customdata = ~get(searchHighlightCol),
+        color = if (is.null(categoryCol)) NULL else ~get(categoryCol),
+        colors = RColorBrewer::brewer.pal(MAX_SELECT, "Set2") 
       )
     } else if (sum(selected) > 0) {
       p <- plotly::plot_ly(source = ns("A")) %>%
         add_trace(
-          data = dataset() %>% 
+          data = data %>% 
             filter((!!as.name(searchHighlightCol)) %in% input$search),
           x = ~get(xCol),
           y = ~get(yCol),
@@ -115,12 +130,12 @@ moodLandscapeServer <- function(input,
           text = text,
           hoverinfo = "text",
           marker = list(
-            color = 'rgb(31, 119, 180)'
+            color = "rgb(31, 119, 180)"
           ),
           customdata = ~id
       ) %>%
         add_trace(
-          data = dataset() %>% 
+          data = data %>% 
             filter(!((!!as.name(searchHighlightCol)) %in% input$search)),
           x = ~get(xCol),
           y = ~get(yCol),

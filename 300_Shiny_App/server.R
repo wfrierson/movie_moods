@@ -118,8 +118,8 @@ shinyServer(function(input, output) {
       "<br>Character Count: ", characterCount,
       "<br>Genres: ", genreList
     ),
-    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
-    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
+    xlim = c(-0.18, 0.18),
+    ylim = c(-0.2, 0.2)
   )
   
   filteredCharacters <- shiny::reactive({
@@ -135,14 +135,16 @@ shinyServer(function(input, output) {
     xCol = "PC1",
     yCol = "PC2",
     searchHighlightCol = "id",
-    searchDisplayCol = 'character',
+    searchDisplayCol = "character",
     text = ~paste0(
       "<b>", character, "</b>",
       "<br>Movie: ", movie,
       "<br>Word Count: ", tokenCount
     ),
-    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
-    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
+    xlim = c(-0.18, 0.18),
+    ylim = c(-0.2, 0.2),
+    categoryCol = "movie",
+    categoryOrder = shiny::reactive({movieMoodLandscape$valueSelected})
   )
 
   moodCols <- c(
