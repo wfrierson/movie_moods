@@ -59,6 +59,15 @@ shinyUI(
       ),
 
       mainPanel(
+        shiny::fluidRow(
+          shiny::p(
+            "What's a movie mood? We processed movie screenplays scraped from",
+            shiny::a("IMSDb.com", href = "https://www.imsdb.com/", target = "_blank"),
+            "and computed their emotions from the dialog using the",
+            shiny::a("EmoLex", href = "http://www.saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm", target = "_blank"),
+            "word associations."
+          )
+        ),
         shiny::fluidRow(h3("Choose movies to compare")),
         fluidRow(
           shiny::column(
@@ -78,7 +87,7 @@ shinyUI(
             )
           )
         ),
-        hr(),
+        shiny::hr(),
         shiny::fluidRow(h3("Choose characters to compare")),
         fluidRow(
           shiny::column(
@@ -97,6 +106,11 @@ shinyUI(
               height = "400"
             )
           )
+        ),
+        shiny::hr(),
+        shiny::p(
+          "This project's source code is available on",
+          shiny::a("GitHub", href = "https://github.com/wfrierson/movie_moods", target = "_blank")
         )
       )
     )
