@@ -55,7 +55,7 @@ moodStarServer <- function(input,
       dataset(),
       type = "scatterpolar",
       fill = "toself",
-      mode = "lines"
+      mode = "markers"
     ) %>%
       plotly::layout(
         margin = list(l = 0, r = 0),
