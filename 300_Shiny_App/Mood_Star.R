@@ -13,7 +13,8 @@ moodStarUi <- function(id, width, height) {
       ns("plot"),
       width,
       height
-    )
+    ),
+    shiny::uiOutput(ns("comment"))
   )
   
   return(elements)
@@ -39,6 +40,21 @@ moodStarServer <- function(input,
     moodLabels <- moodCols
   }
 
+  output$comment <- shiny::renderUI({
+    if (nrow(dataset()) > 0) {
+      p <- shiny::p(
+        paste(
+          "A point further from the center to a direction means more",
+          "association with that mood."
+        ),
+        style = "padding: 4px"
+      )
+    } else {
+      p <- shiny::p()
+    }
+    return(p)
+  })
+
   plot_obj <- shiny::reactive({
     shiny::validate(
       shiny::need(
@@ -55,7 +71,7 @@ moodStarServer <- function(input,
       dataset(),
       type = "scatterpolar",
       fill = "toself",
-      mode = "lines"
+      mode = "markers"
     ) %>%
       plotly::layout(
         margin = list(l = 0, r = 0),

@@ -9,12 +9,13 @@ moodLandscapeUi <- function(id, width, height) {
   ns <- shiny::NS(id)
   
   elements <- shiny::tagList(
-    htmlOutput(ns("searchUi")),
+    shiny::htmlOutput(ns("searchUi")),
     plotly::plotlyOutput(
       ns("plot"),
       width,
       height
-    )
+    ),
+    shiny::uiOutput(ns("comment"))
   )
   
   return(elements)
@@ -42,6 +43,23 @@ moodLandscapeServer <- function(input,
                                 ylim) {
   ns = session$ns
   MAX_SELECT = 3
+  
+  output$comment <- shiny::renderUI({
+    if (nrow(dataset()) > 0) {
+      p <- shiny::p(
+        paste(
+          "The points are spread out in this plot such that those similar in",
+          "mood are closer to each other."
+        ),
+        style = "padding: 4px"
+      )
+    } else {
+      p <- shiny::p()
+    }
+    return(p)
+  })
+    
+    
   
   # Dynamically render the selectizeInput UI if dataset changes
   output$searchUi <- shiny::renderUI({
