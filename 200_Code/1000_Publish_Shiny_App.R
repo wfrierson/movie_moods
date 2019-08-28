@@ -42,7 +42,8 @@ data.files <- c(
   "702_screenplayMoodProb.movie.csv",
   "703_screenplayMoodProb.character.csv",
   "901_screenplayMoodProb.movieRotated.csv",
-  "902_screenplayMoodProb.characterRotated.csv"
+  "902_screenplayMoodProb.characterRotated.csv",
+  "movie_name_lookup.csv"
 )
 file.copy(file.path(folder.data.processed, data.files), folder.shinyrelease)
 
