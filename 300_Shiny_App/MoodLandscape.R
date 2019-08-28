@@ -59,11 +59,14 @@ moodLandscapeServer <- function(input,
     return(p)
   })
     
-    
-  
   # Dynamically render the selectizeInput UI if dataset changes
   output$searchUi <- shiny::renderUI({
-    data <- dataset()
+    if(searchDisplayCol == 'character') {
+      data <- dataset() %>% arrange(movie, desc(tokenCount))
+    } else {
+      data <- dataset()
+    }
+    
     searchChoices <- data[[searchHighlightCol]]
     names(searchChoices) <- data[[searchDisplayCol]]
     
@@ -101,7 +104,9 @@ moodLandscapeServer <- function(input,
     shiny::validate(
       shiny::need(
         nrow(dataset()) > 0,
-        "Please select at least 1 movie to show the mood space of characters in the selected movie(s)."
+        paste(
+          "Please select at least 1 movie to show the mood space of",
+          "characters in the selected movie(s).")
       )
     )
     
@@ -186,7 +191,11 @@ moodLandscapeServer <- function(input,
     }
 
     output$searchUi <- shiny::renderUI({
-      data <- dataset()
+      if(searchDisplayCol == 'character') {
+        data <- dataset() %>% arrange(movie, desc(tokenCount))
+      } else {
+        data <- dataset()
+      }
       searchChoices <- data[[searchHighlightCol]]
       names(searchChoices) <- data[[searchDisplayCol]]
       
