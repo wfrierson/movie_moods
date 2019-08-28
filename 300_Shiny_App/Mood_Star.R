@@ -34,18 +34,16 @@ moodStarServer <- function(input,
                            idCol,
                            nameCol,
                            moodCols,
-                           moodLabels = NULL,
                            rLim = NA) {
-  if (is.null(moodLabels)) {
-    moodLabels <- moodCols
-  }
-
   output$comment <- shiny::renderUI({
     if (nrow(dataset()) > 0) {
       p <- shiny::p(
         paste(
           "A point further from the center to a direction means more",
-          "association with that mood."
+          "association with that mood.",
+          "Moods are represented here as percentiles. E.g., a ", nameCol,
+          "with a mood percentile above 50% means that mood is",
+          "abnormally frequent for that", nameCol, "."
         ),
         style = "padding: 4px"
       )
@@ -54,7 +52,7 @@ moodStarServer <- function(input,
     }
     return(p)
   })
-
+  
   plot_obj <- shiny::reactive({
     shiny::validate(
       shiny::need(
@@ -67,11 +65,37 @@ moodStarServer <- function(input,
       )
     )
     
+    # Melting table 
+    dataset.melt <- data.table::melt(
+      data.table::as.data.table(dataset()),
+      id.vars = c(idCol, nameCol),
+      measure.vars = moodCols,
+      variable.name = 'mood',
+      value.name = 'moodPercentile',
+      variable.factor = FALSE
+    )[
+      # Clean up mood label for plotting
+      , mood := gsub('Percentile', '', mood) %>% tools::toTitleCase(.)
+    ]
+    
+    # Due to plotly bug, categorical line plots can only be connected if the
+    # final factor values are duplicated. For the EmoLex, the final mood
+    # category is fear.
+    dataset.melt <- data.table::rbindlist(list(
+      dataset.melt,
+      dataset.melt[mood == 'Fear']
+    ))
+    
     p <- plotly::plot_ly(
-      dataset(),
+      dataset.melt,
       type = "scatterpolar",
-      fill = "toself",
-      mode = "markers"
+      mode = "lines",
+      # fill = 'toself'
+      hoverinfo = "text",
+      hovertemplate = "%{theta} Percentile: %{r:.2f}",
+      r = ~moodPercentile,
+      theta = ~mood,
+      name = ~get(nameCol)
     ) %>%
       plotly::layout(
         margin = list(l = 0, r = 0),
@@ -81,26 +105,15 @@ moodStarServer <- function(input,
             range = c(0, rLim)
           ),
           plot_bgcolor = "F0F0F0"
+        ),
+        legend = list(
+          orientation = "h",
+          xanchor = "center",
+          x = 0.5
         )
       ) %>%
       plotly::config(displayModeBar = FALSE)
     
-    ids <- dataset()[[idCol]]
-    names <- dataset()[[nameCol]]
-    for (index in seq_along(ids)) {
-      row <- dataset() %>%
-        dplyr::filter(get(idCol) == ids[index])
-      p <- plotly::add_trace(
-        p,
-        r = abs(array(row[,moodCols])),
-        theta = moodLabels,
-        name = names[index],
-        showlegend = FALSE,
-        hoverinfo = "text",
-        hovertemplate = "%{theta}: %{r:.2f}"
-      )
-    }
-
     return(p)
   })
 

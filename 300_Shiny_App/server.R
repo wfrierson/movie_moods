@@ -7,6 +7,17 @@ library(plotly)
 folder.data <- "../100_Data"
 folder.data.processed <- file.path(folder.data, "120_Processed_Data")
 
+# Import lookup table for more readable movie names
+movieNameLookup <- data.table::fread(
+  file = file.path(
+    folder.data.processed,
+    'movie_name_lookup.csv'
+  ),
+  sep = ',',
+  stringsAsFactors = FALSE,
+  key = 'movie'
+)
+
 # Import data and remove records with fewer than 10 sections.
 # This has the effect of not including very minor characters in the dashboard.
 screenplayMoodProb.movieRotated <- data.table::fread(
@@ -17,7 +28,19 @@ screenplayMoodProb.movieRotated <- data.table::fread(
   sep = "|",
   quote = ""
 )[
+  # Append nicer, more readable movie name
+  , movie := movieNameLookup[movie, movieFormatted]
+][
   sectionCount > 10
+]
+
+plotLims.movie <- screenplayMoodProb.movieRotated[
+  , .(
+    PC1.min = min(PC1),
+    PC1.max = max(PC1),
+    PC2.min = min(PC2),
+    PC2.max = max(PC2)
+  )
 ]
 
 screenplayMoodProb.movie <- data.table::fread(
@@ -28,9 +51,11 @@ screenplayMoodProb.movie <- data.table::fread(
   sep = "|",
   quote = ""
 )[
+  # Append nicer, more readable movie name
+  , movie := movieNameLookup[movie, movieFormatted]
+][
   sectionCount > 10
 ]
-
 
 screenplayMoodProb.characterRotated <- data.table::fread(
   file = file.path(
@@ -40,7 +65,19 @@ screenplayMoodProb.characterRotated <- data.table::fread(
   sep = "|",
   quote = ""
 )[
+  # Append nicer, more readable movie name
+  , movie := movieNameLookup[movie, movieFormatted]
+][
   sectionCount > 10
+]
+
+plotLims.character <- screenplayMoodProb.characterRotated[
+  , .(
+    PC1.min = min(PC1),
+    PC1.max = max(PC1),
+    PC2.min = min(PC2),
+    PC2.max = max(PC2)
+  )
 ]
 
 screenplayMoodProb.character <- data.table::fread(
@@ -51,6 +88,9 @@ screenplayMoodProb.character <- data.table::fread(
   sep = "|",
   quote = ""
 )[
+  # Append nicer, more readable movie name
+  , movie := movieNameLookup[movie, movieFormatted]
+][
   sectionCount > 10
 ]
 
@@ -118,8 +158,8 @@ shinyServer(function(input, output) {
       "<br>Character Count: ", characterCount,
       "<br>Genres: ", genreList
     ),
-    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
-    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
+    xlim = plotLims.movie[, c(PC1.min, PC1.max)] * 1.1,
+    ylim = plotLims.movie[, c(PC2.min, PC2.max)] * 1.1
   )
   
   filteredCharacters <- shiny::reactive({
@@ -141,16 +181,14 @@ shinyServer(function(input, output) {
       "<br>Movie: ", movie,
       "<br>Word Count: ", tokenCount
     ),
-    xlim = c(-0.18, 0.18), #c(-0.130182, 0.178242),
-    ylim = c(-0.2, 0.2) #c(-0.194214, 0.169695)
+    xlim = plotLims.character[, c(PC1.min, PC1.max)] * 1.1,
+    ylim = plotLims.character[, c(PC2.min, PC2.max)] * 1.1
   )
 
   moodCols <- c(
     'fear', 'trust', 'joy', 'anticipation', 'anger', 'disgust', 'sadness',
     'surprise'
   )
-  
-  moodLabels <- tools::toTitleCase(moodCols)
   
   movieMoodStarData <- shiny::reactive({
     SelectMovies(screenplayMoodProb.movie, movieMoodLandscape$valueSelected)
@@ -164,7 +202,6 @@ shinyServer(function(input, output) {
     idCol = 'id',
     nameCol = "movie",
     moodCols = paste0(moodCols, 'Percentile'),
-    moodLabels = moodLabels,
     rLim = 1
   )
   
@@ -183,7 +220,6 @@ shinyServer(function(input, output) {
     idCol = 'id',
     nameCol = "character",
     moodCols = paste0(moodCols, 'Percentile'),
-    moodLabels = moodLabels,
     rLim = 1
   )
 })
