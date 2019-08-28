@@ -62,8 +62,9 @@ shinyUI(
         shiny::fluidRow(
           shiny::p(
             "What's a movie mood? We processed movie screenplays scraped from",
-            shiny::a("IMSDb.com", href = "https://www.imsdb.com/", target = "_blank"),
-            "and computed their emotions from the dialog using the",
+            shiny::a("IMSDb.com.", href = "https://www.imsdb.com/", target = "_blank"),
+            "From screenplay dialog and scene descriptions, we computed their",
+            "emotions using the",
             shiny::a("EmoLex", href = "http://www.saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm", target = "_blank"),
             "word associations."
           )
@@ -80,6 +81,10 @@ shinyUI(
           ),
           shiny::column(
             width = 6,
+            style = 'padding:11px;',
+            br(),
+            br(),
+            br(),
             moodStarUi(
               "movieMoodStar",
               width = "100%",
@@ -100,6 +105,10 @@ shinyUI(
           ),
           shiny::column(
             width = 6,
+            style = 'padding:11px;',
+            br(),
+            br(),
+            br(),
             moodStarUi(
               "characterMoodStar",
               width = "100%",
